@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/i18n.ts","./src/main.tsx","./src/socket.ts","./src/components/helpmodal.tsx","./src/components/topbar.tsx","./src/pages/page1identity.tsx","./src/pages/page2recycle.tsx","./src/pages/page3select.tsx","./src/pages/page4payment.tsx","./src/state/sessioncontext.tsx"],"version":"5.9.3"}
