@@ -45,6 +45,10 @@ export default function HelpModal({ onClose }: Props) {
                 className="text"
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                maxLength={500}
               />
             </label>
             <div className="row" style={{ marginTop: 14, justifyContent: "flex-end" }}>

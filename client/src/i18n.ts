@@ -20,6 +20,18 @@ const resources = {
         kiosk: "Kiosk",
         baht: "THB",
       },
+      stepper: {
+        identity: "Identity",
+        recycle: "Old Ticket",
+        select: "Choose",
+        payment: "Payment",
+      },
+      idle: {
+        title: "Are you still there?",
+        body: "This session will reset in {{seconds}}s to protect your privacy.",
+        stay: "I'm still here",
+        reset_now: "End session",
+      },
       help_modal: {
         title: "Need help?",
         body: "If this machine has an issue, please describe it below. A staff member will be notified.",
@@ -127,6 +139,18 @@ const resources = {
         kiosk: "ตู้",
         baht: "บาท",
       },
+      stepper: {
+        identity: "ยืนยันตัวตน",
+        recycle: "สลากเก่า",
+        select: "เลือกเลข",
+        payment: "ชำระเงิน",
+      },
+      idle: {
+        title: "ยังอยู่ที่ตู้หรือไม่?",
+        body: "เพื่อความปลอดภัยของข้อมูล ระบบจะรีเซ็ตในอีก {{seconds}} วินาที",
+        stay: "ยังอยู่",
+        reset_now: "จบการใช้งาน",
+      },
       help_modal: {
         title: "ต้องการความช่วยเหลือ?",
         body: "หากตู้นี้มีปัญหา โปรดอธิบายด้านล่าง เจ้าหน้าที่จะได้รับแจ้งทันที",
@@ -224,5 +248,29 @@ i18n.use(initReactI18next).init({
   fallbackLng: "en",
   interpolation: { escapeValue: false },
 });
+
+function syncHtmlLang(lng: string) {
+  if (typeof document !== "undefined") {
+    document.documentElement.lang = lng.startsWith("th") ? "th" : "en";
+  }
+}
+syncHtmlLang(i18n.language);
+i18n.on("languageChanged", syncHtmlLang);
+
+if ((import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV) {
+  const flatten = (obj: unknown, prefix = ""): string[] => {
+    if (obj === null || typeof obj !== "object") return [prefix];
+    return Object.entries(obj as Record<string, unknown>).flatMap(([k, v]) =>
+      flatten(v, prefix ? `${prefix}.${k}` : k)
+    );
+  };
+  const enKeys = new Set(flatten(resources.en.translation));
+  const thKeys = new Set(flatten(resources.th.translation));
+  const missingInTh = [...enKeys].filter((k) => !thKeys.has(k));
+  const missingInEn = [...thKeys].filter((k) => !enKeys.has(k));
+  if (missingInTh.length || missingInEn.length) {
+    console.warn("[i18n] translation key mismatch", { missingInTh, missingInEn });
+  }
+}
 
 export default i18n;

@@ -190,6 +190,10 @@ export default function Page3Select() {
                 placeholder={t("page3.search_placeholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                aria-label={t("page3.search")}
               />
               <div className="row" style={{ marginTop: 10, justifyContent: "flex-end" }}>
                 <button className="btn" type="submit" disabled={search.length !== 6}>

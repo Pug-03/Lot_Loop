@@ -5,7 +5,8 @@
       "Bash(npm run *)",
       "Bash(npx tsc *)",
       "Bash(curl *)",
-      "Bash(node test-locks.js)"
+      "Bash(node test-locks.js)",
+      "PowerShell(npx --prefix C:\\\\VS_Code_Pug\\\\Lot_Loop_Test\\\\client tsc -p C:\\\\VS_Code_Pug\\\\Lot_Loop_Test\\\\client\\\\tsconfig.json --pretty false 2>&1 | Select-Object -First 60)"
     ]
   }
 }
