@@ -1,7 +1,12 @@
+import { createPortal } from "react-dom";
+
 type Props = { onAccept: () => void };
 
 export default function ConsentModal({ onAccept }: Props) {
-  return (
+  // Render at <body> so the full-screen dim isn't trapped inside `.main`
+  // (which has a transform from its page-in animation, creating a containing
+  // block for fixed-positioned children).
+  return createPortal(
     <div className="modal-back">
       <div className="modal" role="dialog" aria-modal="true">
         <h3>การเก็บข้อมูลส่วนบุคคล (Consent)</h3>
@@ -16,6 +21,7 @@ export default function ConsentModal({ onAccept }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
