@@ -15,11 +15,14 @@
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
+/* Guarantee the page never scrolls sideways, regardless of inner content. */
+body { overflow-x: hidden; }
 body {
   background: var(--bg);
   color: var(--text);
   font-family: "Segoe UI", "Sarabun", system-ui, sans-serif;
   font-size: 18px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
@@ -45,24 +48,33 @@ button {
 
 /* Top bar */
 .topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 24px;
+  padding: 12px 0;
   background: var(--panel);
   border-bottom: 1px solid var(--border);
 }
+.topbar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  max-width: 1200px; width: 100%; margin: 0 auto;
+  padding: 0 24px;
+}
 .topbar .brand {
   display: flex; align-items: center; gap: 12px;
-  font-weight: 700; font-size: 1.4rem;
+  font-weight: 700; font-size: 1.4rem; letter-spacing: -0.01em;
+  min-width: 0;
 }
 .topbar .brand .dot {
-  width: 12px; height: 12px; border-radius: 50%;
+  width: 12px; height: 12px; border-radius: 50%; flex: none;
   background: var(--good); box-shadow: 0 0 8px var(--good);
 }
 .topbar .brand .dot.off { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
-.topbar .actions { display: flex; gap: 12px; align-items: center; }
-.topbar .kiosk-id { color: var(--muted); font-size: 0.9rem; }
+.topbar .actions { display: flex; gap: 12px; align-items: center; flex: none; }
+.topbar .kiosk-id {
+  color: var(--muted); font-size: 0.85rem; font-weight: 500;
+  max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 
 .lang-toggle {
   display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden;
@@ -132,15 +144,20 @@ button {
   flex: 1; padding: 24px; max-width: 1200px; width: 100%; margin: 0 auto;
   animation: page-in 240ms ease-out both;
 }
+/* Opacity-only: a transform here would become the containing block for any
+   position:fixed overlay (modals), trapping it inside .main instead of the
+   viewport. Keep it transform-free so dialogs cover the whole screen. */
 @keyframes page-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.page-title { font-size: 2rem; margin: 0 0 4px 0; }
-.page-subtitle { color: var(--muted); margin: 0 0 24px 0; }
+.page-title { font-size: 2rem; margin: 0 0 6px 0; letter-spacing: -0.02em; line-height: 1.15; }
+.page-subtitle { color: var(--muted); margin: 0 0 24px 0; line-height: 1.4; }
 
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+/* minmax(0, 1fr) lets each column shrink below its content's intrinsic width,
+   so a wide child (e.g. the trending row) can't push the layout past 100vw. */
+.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
 @media (max-width: 720px) {
@@ -153,7 +170,7 @@ button {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 22px;
+  padding: 24px;
 }
 .card.method {
   display: flex; flex-direction: column; gap: 12px;
@@ -181,6 +198,9 @@ button {
 
 .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .row.between { justify-content: space-between; }
+/* Mode buttons stay on one fixed row; box-sizing: border-box keeps the
+   active/ghost border swap from changing button size, so nothing shifts. */
+.mode-toggle { display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; }
 
 .badge {
   display: inline-block; padding: 4px 10px; border-radius: 999px;
@@ -241,6 +261,62 @@ button {
   display: block; font-size: 0.7rem; letter-spacing: 0;
   font-family: inherit; font-weight: 500; color: inherit; opacity: 0.85;
   margin-top: 4px;
+}
+
+/* Lucky-number ticker — single-row marquee that auto-scrolls and loops
+   seamlessly. The track holds two identical copies; shifting by exactly
+   half its width lands copy 2 where copy 1 began. */
+.lucky-marquee {
+  position: relative;
+  overflow: hidden;
+  padding: 6px 0;
+}
+.lucky-track {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  animation: marquee 36s linear infinite;
+}
+.lucky-marquee:hover .lucky-track { animation-play-state: paused; }
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.lucky-chip {
+  flex: none;
+  margin-right: 10px;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: "Courier New", monospace;
+  font-weight: 700; font-size: 1rem; letter-spacing: 1px;
+  white-space: nowrap; cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.lucky-chip:hover {
+  border-color: var(--accent); transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(47,111,237,0.18);
+}
+.lucky-chip.selected {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--on-accent); border-color: var(--accent-2);
+}
+.lucky-chip.self {
+  background: rgba(46,204,113,0.10); border-color: var(--good); color: var(--good);
+}
+.lucky-chip.other {
+  background: rgba(230,57,70,0.10); border-color: rgba(230,57,70,0.35);
+  color: var(--bad); cursor: not-allowed; text-decoration: line-through;
+}
+.lucky-chip.other:hover, .lucky-chip.sold:hover { transform: none; box-shadow: none; }
+.lucky-chip.sold {
+  color: var(--muted); cursor: not-allowed; text-decoration: line-through; opacity: 0.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lucky-track { animation: none; }
 }
 
 input.text {
@@ -305,7 +381,7 @@ select.text {
   background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
   padding: 24px; min-width: 340px; max-width: 520px; width: 90%;
 }
-.modal h3 { margin-top: 0; }
+.modal h3 { margin-top: 0; margin-bottom: 12px; letter-spacing: -0.01em; }
 
 .qr {
   display: grid; place-items: center;
@@ -326,7 +402,7 @@ select.text {
   color: var(--bad); padding: 10px 14px; border-radius: 10px;
 }
 
-.note { color: var(--muted); font-size: 0.9rem; }
+.note { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
 
 /* Face capture (liveness) */
 .facescan {

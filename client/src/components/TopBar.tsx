@@ -12,31 +12,33 @@ export default function TopBar() {
 
   return (
     <div className="topbar">
-      <div className="brand">
-        <span className={`dot ${connected ? "" : "off"}`} />
-        <span>{t("brand")}</span>
-        <span className="kiosk-id">· {t("common.kiosk")} {kioskId}</span>
-      </div>
-      <div className="actions">
-        <div className="lang-toggle" role="group" aria-label="language">
-          <button
-            className={lang.startsWith("en") ? "active" : ""}
-            onClick={() => i18n.changeLanguage("en")}
-          >
-            {t("lang.en")}
-          </button>
-          <button
-            className={lang.startsWith("th") ? "active" : ""}
-            onClick={() => i18n.changeLanguage("th")}
-          >
-            {t("lang.th")}
+      <div className="topbar-inner">
+        <div className="brand">
+          <span className={`dot ${connected ? "" : "off"}`} />
+          <span>{t("brand")}</span>
+          <span className="kiosk-id" title={kioskId}>· {t("common.kiosk")} {kioskId}</span>
+        </div>
+        <div className="actions">
+          <div className="lang-toggle" role="group" aria-label="language">
+            <button
+              className={lang.startsWith("en") ? "active" : ""}
+              onClick={() => i18n.changeLanguage("en")}
+            >
+              {t("lang.en")}
+            </button>
+            <button
+              className={lang.startsWith("th") ? "active" : ""}
+              onClick={() => i18n.changeLanguage("th")}
+            >
+              {t("lang.th")}
+            </button>
+          </div>
+          <button className="help-btn" onClick={() => setHelpOpen(true)}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <Icon icon="mdi:lifebuoy" width="18" height="18" /> {t("help")}
+            </span>
           </button>
         </div>
-        <button className="help-btn" onClick={() => setHelpOpen(true)}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-            <Icon icon="mdi:lifebuoy" width="18" height="18" /> {t("help")}
-          </span>
-        </button>
       </div>
       {helpOpen && <HelpModal onClose={() => setHelpOpen(false)} />}
     </div>

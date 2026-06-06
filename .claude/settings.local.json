@@ -13,7 +13,8 @@
       "Bash(ls client/node_modules/socket.io-client)",
       "Bash(rm -f test-purchase.mjs data/sold.test.json data/sold.test.json.tmp)",
       "Bash(rmdir data *)",
-      "PowerShell($c = Get-NetTCPConnection -LocalPort 4055 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { Stop-Process -Id $c.OwningProcess -Force; \"stopped pid $\\($c.OwningProcess\\)\" } else { \"nothing on 4055\" })"
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 4055 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { Stop-Process -Id $c.OwningProcess -Force; \"stopped pid $\\($c.OwningProcess\\)\" } else { \"nothing on 4055\" })",
+      "PowerShell(npx tsc -b)"
     ]
   }
 }

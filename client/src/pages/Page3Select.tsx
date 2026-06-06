@@ -190,7 +190,7 @@ export default function Page3Select() {
           <div className="card" style={{ marginBottom: 16 }}>
             <div className="row between">
               <strong>{t("page3.mode")}</strong>
-              <div className="row">
+              <div className="mode-toggle">
                 <button
                   className={`btn ${mode === "single" ? "" : "ghost"}`}
                   onClick={() => setMode("single")}
@@ -230,29 +230,36 @@ export default function Page3Select() {
 
           <div className="card">
             <strong style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><Icon icon="mdi:star-outline" width={18} height={18} /> {t("page3.trending")}</strong>
-            <div className="grid-5" style={{ marginTop: 12 }}>
-              {trendingTiles.map((n) => {
-                const state = tileState(n);
-                const cls =
-                  state === "selected" ? "num-tile selected"
-                  : state === "self" ? "num-tile locked-self"
-                  : state === "other" ? "num-tile locked-other"
-                  : state === "sold" ? "num-tile sold"
-                  : "num-tile";
-                return (
-                  <div
-                    key={n}
-                    className={cls}
-                    onClick={() => onTileClick(n, "trending")}
-                    title={state === "sold" ? t("page3.sold") : state === "other" ? t("page3.locked_other") : ""}
-                  >
-                    {n}
-                    {state === "sold" && <span className="sub"><Icon icon="mdi:close-circle-outline" width={14} height={14} /> {t("page3.sold")}</span>}
-                    {state === "other" && <span className="sub"><Icon icon="mdi:lock-outline" width={14} height={14} /> {t("page3.unavailable")}</span>}
-                    {state === "self" && <span className="sub">{t("page3.locked_self")}</span>}
-                  </div>
-                );
-              })}
+            <div className="lucky-marquee" style={{ marginTop: 12 }}>
+              <div className="lucky-track">
+                {[...trendingTiles, ...trendingTiles].map((n, i) => {
+                  const isClone = i >= trendingTiles.length;
+                  const state = tileState(n);
+                  const cls =
+                    "lucky-chip"
+                    + (state === "selected" ? " selected"
+                      : state === "self" ? " self"
+                      : state === "other" ? " other"
+                      : state === "sold" ? " sold" : "");
+                  return (
+                    <button
+                      key={`${n}-${i}`}
+                      type="button"
+                      className={cls}
+                      onClick={() => onTileClick(n, "trending")}
+                      title={state === "sold" ? t("page3.sold") : state === "other" ? t("page3.locked_other") : ""}
+                      aria-hidden={isClone || undefined}
+                      tabIndex={isClone ? -1 : undefined}
+                    >
+                      <Icon icon="mdi:star-four-points" color="var(--warn)" width={12} height={12} />
+                      {n}
+                      {state === "sold" && <Icon icon="mdi:close-circle-outline" width={12} height={12} />}
+                      {state === "other" && <Icon icon="mdi:lock-outline" width={12} height={12} />}
+                      {state === "self" && <Icon icon="mdi:check" width={12} height={12} />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
