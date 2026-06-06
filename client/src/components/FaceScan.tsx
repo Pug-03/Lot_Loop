@@ -29,8 +29,14 @@ export default function FaceScan({ onVerified }: { onVerified: () => void }) {
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const onVerifiedRef = useRef(onVerified);
+  // Holds the live stream so it can be stopped from anywhere (cleanup, retry,
+  // or before re-requesting) — we must never leave a track running on the
+  // device, since a lingering stream is what makes the next getUserMedia fail.
+  const streamRef = useRef<MediaStream | null>(null);
   const [phase, setPhase] = useState<Phase>("starting");
   const [progress, setProgress] = useState(0);
+  // Bumping this re-runs the camera-init effect (used by "Try Again").
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     onVerifiedRef.current = onVerified;
@@ -39,8 +45,9 @@ export default function FaceScan({ onVerified }: { onVerified: () => void }) {
   useEffect(() => {
     let raf = 0;
     let doneTimer: ReturnType<typeof setTimeout> | undefined;
-    let stream: MediaStream | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
     let finished = false;
+    let cancelled = false;
 
     const canvas = document.createElement("canvas");
     canvas.width = S;
@@ -136,37 +143,98 @@ export default function FaceScan({ onVerified }: { onVerified: () => void }) {
       raf = requestAnimationFrame(loop);
     }
 
-    (async () => {
+    function stopStream() {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    // Open the camera. Always release any active stream first (re-requesting
+    // while one is live is a common cause of "Cannot access the camera"). If
+    // the front-facing request is rejected, fall back to a permissive
+    // constraint set — some devices/browsers don't honor `facingMode`.
+    async function openCamera(): Promise<MediaStream> {
+      stopStream();
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
+        return await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 640 } },
           audio: false,
         });
-        const v = videoRef.current;
-        if (!v) return;
-        v.srcObject = stream;
-        await v.play();
-        setPhase("searching");
-        lastT = performance.now();
-        raf = requestAnimationFrame(loop);
       } catch {
-        setPhase("error");
+        return await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
+    }
+
+    async function attachAndRun(stream: MediaStream) {
+      if (cancelled) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      streamRef.current = stream;
+      const v = videoRef.current;
+      if (!v) return;
+      v.srcObject = stream;
+      try {
+        await v.play();
+      } catch {
+        // Autoplay can reject; the frame loop tolerates a not-yet-playing video.
+      }
+      if (cancelled) return;
+      setPhase("searching");
+      lastT = performance.now();
+      raf = requestAnimationFrame(loop);
+    }
+
+    (async () => {
+      setPhase("starting");
+      try {
+        await attachAndRun(await openCamera());
+      } catch {
+        // Transient failures (device still releasing, a permission race) are
+        // common. Wait briefly, then silently retry once before surfacing the
+        // error so the user almost never sees it.
+        await new Promise<void>((res) => {
+          retryTimer = setTimeout(res, 500);
+        });
+        if (cancelled) return;
+        try {
+          await attachAndRun(await openCamera());
+        } catch {
+          if (!cancelled) setPhase("error");
+        }
       }
     })();
 
     return () => {
+      cancelled = true;
       finished = true;
       cancelAnimationFrame(raf);
       if (doneTimer) clearTimeout(doneTimer);
-      stream?.getTracks().forEach((track) => track.stop());
+      if (retryTimer) clearTimeout(retryTimer);
+      stopStream();
     };
-  }, []);
+  }, [attempt]);
+
+  // Manual recovery: stop the old stream, give the device ~300ms to release
+  // it, then re-run the init effect.
+  async function handleTryAgain() {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    setProgress(0);
+    setPhase("starting");
+    await new Promise((res) => setTimeout(res, 300));
+    setAttempt((a) => a + 1);
+  }
 
   if (phase === "error") {
     return (
       <div className="face-error">
         <Icon icon="mdi:camera-off" width={32} height={32} />
         <span>{t("page1.face_camera_error")}</span>
+        <button className="btn" onClick={handleTryAgain}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <Icon icon="mdi:refresh" width={18} height={18} /> {t("page1.face_retry")}
+          </span>
+        </button>
       </div>
     );
   }
