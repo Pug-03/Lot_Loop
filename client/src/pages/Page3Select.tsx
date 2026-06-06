@@ -24,6 +24,7 @@ export default function Page3Select() {
   } = useSession();
 
   const [search, setSearch] = useState("");
+  const [searchConfirm, setSearchConfirm] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("single");
   const [error, setError] = useState<string | null>(null);
   const [autoTried, setAutoTried] = useState(false);
@@ -108,15 +109,31 @@ export default function Page3Select() {
       setError(t("page3.locked_other"));
       return;
     }
-    if (state === "selected") return;
+    if (state === "selected") {
+      // Already reserved in this session — go straight to confirmation.
+      setSearch("");
+      setSearchConfirm(trimmed);
+      return;
+    }
     const r = await selectNumber(trimmed, "search");
     if (!r.ok) {
       setError(r.reason === "sold" ? t("page3.sold") : t("page3.locked_other"));
     } else {
       setSearch("");
-      // search-to-buy: go to payment after successful select
-      nav("/payment");
+      // Reserve the number, then ask the customer to confirm before checkout.
+      setSearchConfirm(trimmed);
     }
+  }
+
+  async function handleSearchConfirm() {
+    // Keep the number reserved in the cart, but stay on selection — the
+    // customer goes to payment later via the cart's "Proceed" button.
+    setSearchConfirm(null);
+  }
+
+  async function handleSearchCancel() {
+    if (searchConfirm) await deselectNumber(searchConfirm);
+    setSearchConfirm(null);
   }
 
   async function onRandom() {
@@ -295,6 +312,21 @@ export default function Page3Select() {
           <div className="note" style={{ marginTop: 14 }}>
             {t("page3.price_each", { price: pricePerTicket })}
           </div>
+        {searchConfirm && (
+          <div className="modal-back" onClick={handleSearchCancel}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <h3>{t("page3.confirm_title")}</h3>
+              <p style={{ fontSize: "1.6rem", fontFamily: "Courier New, monospace", marginTop: 8 }}>{searchConfirm}</p>
+              <p className="note" style={{ marginTop: 8 }}>
+                {t("page3.confirm_prompt", { number: searchConfirm, price: pricePerTicket })}
+              </p>
+              <div className="row" style={{ marginTop: 16, justifyContent: "flex-end" }}>
+                <button className="btn ghost" onClick={handleSearchCancel}>{t("common.cancel")}</button>
+                <button className="btn" onClick={handleSearchConfirm} style={{ marginLeft: 8 }}>{t("common.confirm")}</button>
+              </div>
+            </div>
+          </div>
+        )}
         {randomOpen && randomCandidate && (
           <div className="modal-back" onClick={handleRandomCancel}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
