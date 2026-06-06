@@ -11,6 +11,10 @@
   --bad: #d92c3c;
   --warn: #e08a1e;
   --border: #d9e0ec;
+  --font-sans: "Segoe UI", "Sarabun", system-ui, -apple-system, sans-serif;
+  /* Deliberate monospace for ticket numbers — modern, tabular figures rather
+     than the stock Courier New fallback. */
+  --font-mono: ui-monospace, "Cascadia Code", "Cascadia Mono", "Segoe UI Mono", Consolas, "Roboto Mono", monospace;
 }
 
 * { box-sizing: border-box; }
@@ -20,7 +24,7 @@ body { overflow-x: hidden; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Segoe UI", "Sarabun", system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 18px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -218,7 +222,7 @@ button {
   border-radius: 12px;
   padding: 14px 8px;
   text-align: center;
-  font-family: "Courier New", monospace;
+  font-family: var(--font-mono);
   font-weight: 700;
   font-size: 1.4rem;
   letter-spacing: 2px;
@@ -291,7 +295,7 @@ button {
   background: var(--panel-2);
   border: 1px solid var(--border);
   color: var(--text);
-  font-family: "Courier New", monospace;
+  font-family: var(--font-mono);
   font-weight: 700; font-size: 1rem; letter-spacing: 1px;
   white-space: nowrap; cursor: pointer;
   transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
@@ -322,7 +326,7 @@ button {
 input.text {
   width: 100%; background: var(--panel-2); border: 1px solid var(--border);
   color: var(--text); padding: 14px 16px; border-radius: 12px;
-  font-size: 1.2rem; letter-spacing: 2px; font-family: "Courier New", monospace;
+  font-size: 1.2rem; letter-spacing: 2px; font-family: var(--font-mono);
 }
 input.text:focus { outline: none; border-color: var(--accent); }
 
@@ -347,7 +351,7 @@ select.text {
   display: flex; justify-content: space-between; align-items: center;
   background: var(--panel-2); border: 1px solid var(--border);
   border-radius: 10px; padding: 10px 14px;
-  font-family: "Courier New", monospace; font-size: 1.2rem;
+  font-family: var(--font-mono); font-size: 1.2rem;
   width: 100%;
 }
 
@@ -379,14 +383,14 @@ select.text {
 }
 .modal {
   background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
-  padding: 24px; min-width: 340px; max-width: 520px; width: 90%;
+  padding: 24px; min-width: min(340px, 90vw); max-width: 520px; width: 90%;
 }
 .modal h3 { margin-top: 0; margin-bottom: 12px; letter-spacing: -0.01em; }
 
 .qr {
   display: grid; place-items: center;
   background: white; padding: 24px; border-radius: 16px;
-  width: 320px; height: 320px; margin: 0 auto;
+  width: min(320px, 78vw); height: min(320px, 78vw); margin: 0 auto;
 }
 .qr svg { width: 100%; height: 100%; }
 
@@ -394,7 +398,7 @@ select.text {
   display: inline-block;
   background: rgba(0,0,0,0.04);
   border: 1px solid var(--border);
-  padding: 2px 8px; border-radius: 6px; font-family: "Courier New", monospace;
+  padding: 2px 8px; border-radius: 6px; font-family: var(--font-mono);
 }
 
 .alert {
@@ -410,7 +414,7 @@ select.text {
 }
 .face-frame {
   position: relative;
-  width: 280px; height: 280px;
+  width: min(280px, 72vw); height: min(280px, 72vw);
   border-radius: 50%;
   overflow: hidden;
   background: #0d1320;
@@ -481,4 +485,34 @@ select.text {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* Phone screens: tighten spacing, scale type down, and let multi-button rows
+   wrap so nothing overflows the viewport. */
+@media (max-width: 480px) {
+  body { font-size: 16px; }
+
+  .topbar-inner, .stepper, .main { padding-left: 14px; padding-right: 14px; }
+  .main { padding-top: 16px; padding-bottom: 16px; }
+  .topbar .brand { font-size: 1.15rem; gap: 8px; }
+  .topbar .actions { gap: 8px; }
+  .topbar .kiosk-id { display: none; }
+
+  .page-title { font-size: 1.5rem; }
+  .page-subtitle { margin-bottom: 16px; }
+
+  .card { padding: 16px; }
+
+  .btn { padding: 12px 16px; font-size: 1rem; }
+  .btn.big { padding: 16px 20px; font-size: 1.1rem; }
+
+  /* "Mode" label + the three mode buttons share the row; allow wrapping and
+     let the buttons stretch to fill each line instead of overflowing. */
+  .mode-toggle { flex-wrap: wrap; flex-basis: 100%; }
+  .mode-toggle .btn { flex: 1 1 auto; }
+
+  .modal { padding: 18px; }
+
+  /* Cart can take more vertical room on a tall phone screen. */
+  .cart { max-height: 40vh; }
 }

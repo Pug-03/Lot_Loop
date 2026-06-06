@@ -66,7 +66,6 @@ export default function Page1Identity() {
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
               <Icon icon="mdi:credit-card-outline" width="20" height="20" /> {t("page1.insert_card")}
             </span>
-            <span className="badge warn">●●●</span>
           </div>
           <div className="row" style={{ marginTop: 16 }}>
             <button className="btn ghost" onClick={() => setStep("choose")}>
@@ -85,7 +84,6 @@ export default function Page1Identity() {
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
               <Icon icon="mdi:cellphone" width="20" height="20" /> {t("page1.thaid_pending")}
             </span>
-            <span className="badge warn">●●●</span>
           </div>
           <div className="row" style={{ marginTop: 16 }}>
             <button className="btn ghost" onClick={() => setStep("choose")}>
@@ -126,7 +124,9 @@ export default function Page1Identity() {
           </div>
           <div className="row" style={{ marginTop: 16 }}>
             <button className="btn big full" onClick={continueNext}>
-              {t("page1.continue")} →
+              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {t("page1.continue")} <Icon icon="mdi:arrow-right" width={18} height={18} />
+              </span>
             </button>
           </div>
         </div>

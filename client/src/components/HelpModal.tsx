@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Icon } from "@iconify/react";
 import { useSession } from "../state/SessionContext";
 
 type Props = { onClose: () => void };
@@ -23,8 +24,8 @@ export default function HelpModal({ onClose }: Props) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>{t("help_modal.title")}</h3>
         {sent ? (
-          <p className="badge ok" style={{ display: "block", padding: "12px" }}>
-            ✓ {t("help_modal.sent")}
+          <p className="badge ok" style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px" }}>
+            <Icon icon="mdi:check-circle-outline" width="1.1em" height="1.1em" /> {t("help_modal.sent")}
           </p>
         ) : (
           <>

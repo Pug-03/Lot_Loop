@@ -159,7 +159,7 @@ export default function Page4Payment() {
           )}
           <ul>
             {selected.map((s) => (
-              <li key={s.number} style={{ fontFamily: "monospace", fontSize: "1.2rem" }}>
+              <li key={s.number} style={{ fontFamily: "var(--font-mono)", fontSize: "1.2rem" }}>
                 <Icon icon="mdi:ticket" width={16} height={16} /> {s.number}
               </li>
             ))}

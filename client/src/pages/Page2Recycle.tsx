@@ -55,7 +55,6 @@ export default function Page2Recycle() {
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
               <Icon icon="mdi:camera" width={20} height={20} /> {t("page2.scan_prompt")}
             </span>
-            <span className="badge warn">●●●</span>
           </div>
           <div className="row" style={{ marginTop: 16 }}>
             <button className="btn ghost" onClick={() => setStep("ask")}>{t("common.back")}</button>

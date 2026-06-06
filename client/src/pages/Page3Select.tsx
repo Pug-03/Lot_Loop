@@ -251,7 +251,7 @@ export default function Page3Select() {
                       aria-hidden={isClone || undefined}
                       tabIndex={isClone ? -1 : undefined}
                     >
-                      <Icon icon="mdi:star-four-points" color="var(--warn)" width={12} height={12} />
+                      <Icon icon="mdi:clover" width={14} height={14} />
                       {n}
                       {state === "sold" && <Icon icon="mdi:close-circle-outline" width={12} height={12} />}
                       {state === "other" && <Icon icon="mdi:lock-outline" width={12} height={12} />}
@@ -280,8 +280,12 @@ export default function Page3Select() {
                     {s.number}
                     <div className="meta">{t("page3.ttl", { seconds: ttl })}</div>
                   </div>
-                  <button className="btn ghost" onClick={() => deselectNumber(s.number)}>
-                    <Icon icon="mdi:close" width={14} height={14} /> {t("page3.deselect")}
+                  <button
+                    className="btn ghost"
+                    onClick={() => deselectNumber(s.number)}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+                  >
+                    <Icon icon="mdi:close-thick" width="1.1em" height="1.1em" /> {t("page3.deselect")}
                   </button>
                 </div>
               );
@@ -323,7 +327,7 @@ export default function Page3Select() {
           <div className="modal-back" onClick={handleSearchCancel}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
               <h3>{t("page3.confirm_title")}</h3>
-              <p style={{ fontSize: "1.6rem", fontFamily: "Courier New, monospace", marginTop: 8 }}>{searchConfirm}</p>
+              <p style={{ fontSize: "1.6rem", fontFamily: "var(--font-mono)", marginTop: 8 }}>{searchConfirm}</p>
               <p className="note" style={{ marginTop: 8 }}>
                 {t("page3.confirm_prompt", { number: searchConfirm, price: pricePerTicket })}
               </p>
@@ -338,7 +342,7 @@ export default function Page3Select() {
           <div className="modal-back" onClick={handleRandomCancel}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
               <h3>{t("page3.random")}</h3>
-              <p style={{ fontSize: "1.6rem", fontFamily: "Courier New, monospace", marginTop: 8 }}>{randomCandidate}</p>
+              <p style={{ fontSize: "1.6rem", fontFamily: "var(--font-mono)", marginTop: 8 }}>{randomCandidate}</p>
               <div className="row" style={{ marginTop: 16, justifyContent: "flex-end" }}>
                 <button className="btn ghost" onClick={handleRandomCancel}>{t("common.cancel")}</button>
                 <button className="btn ghost" onClick={handleRandomReroll} style={{ marginLeft: 8 }}>{t("page3.random")}</button>
