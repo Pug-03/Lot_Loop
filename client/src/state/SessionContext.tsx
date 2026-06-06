@@ -29,6 +29,9 @@ type SessionState = {
   sold: Set<string>;
 
   // Wizard state
+  // PDPA consent — required once per customer/session (resets on new session & reload).
+  consentAccepted: boolean;
+  acceptConsent: () => void;
   identityMethod: IdentityMethod;
   identityVerified: boolean;
   oldTicketUsed: boolean;
@@ -63,6 +66,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [locks, setLocks] = useState<Map<string, { kioskId: string; expiresAt: number }>>(new Map());
   const [sold, setSold] = useState<Set<string>>(new Set());
 
+  const [consentAccepted, setConsentAccepted] = useState(false);
   const [identityMethod, setIdentityMethod] = useState<IdentityMethod>(null);
   const [identityVerified, setIdentityVerified] = useState(false);
   const [oldTicketUsed, setOldTicketUsed] = useState(false);
@@ -178,9 +182,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     return res;
   }, [selected]);
 
+  const acceptConsent = useCallback(() => setConsentAccepted(true), []);
+
   const resetSession = useCallback(async () => {
     await Promise.all(selected.map((s) => releaseLockSocket(s.number)));
     setSelected([]);
+    // New customer in the queue must give PDPA consent again.
+    setConsentAccepted(false);
     setIdentityMethod(null);
     setIdentityVerified(false);
     setOldTicketUsed(false);
@@ -194,6 +202,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     ttlMs,
     locks,
     sold,
+    consentAccepted,
+    acceptConsent,
     identityMethod,
     identityVerified,
     oldTicketUsed,
@@ -210,7 +220,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     purchaseSelected,
     resetSession,
   }), [
-    connected, trending, ttlMs, locks, sold,
+    connected, trending, ttlMs, locks, sold, consentAccepted, acceptConsent,
     identityMethod, identityVerified, oldTicketUsed, oldTicketNumber, selected,
     setOldTicket, selectNumber, deselectNumber, clearSelection, purchaseSelected, resetSession,
   ]);

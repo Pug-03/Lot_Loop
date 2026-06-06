@@ -1,12 +1,6 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-
 type Props = { onAccept: () => void };
 
 export default function ConsentModal({ onAccept }: Props) {
-  const { t } = useTranslation();
-  const [checked, setChecked] = useState(false);
-
   return (
     <div className="modal-back">
       <div className="modal" role="dialog" aria-modal="true">
@@ -16,15 +10,8 @@ export default function ConsentModal({ onAccept }: Props) {
 
 ผู้ใช้ต้องยอมรับการเก็บ ใช้ และเปิดเผยข้อมูลตามวัตถุประสงค์ข้างต้นก่อนใช้งานเครื่องนี้`}
         </div>
-        <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
-          <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} />
-          <span>ฉันยอมรับการเก็บและการใช้ข้อมูลส่วนบุคคลตามที่ระบุไว้</span>
-        </label>
         <div className="row" style={{ marginTop: 14, justifyContent: "flex-end" }}>
-          <button className="btn ghost" onClick={() => { /* no-op; require acceptance */ }}>
-            ยกเลิก
-          </button>
-          <button className="btn" onClick={() => { if (checked) onAccept(); }} disabled={!checked}>
+          <button className="btn" onClick={onAccept}>
             ยอมรับและดำเนินการต่อ
           </button>
         </div>

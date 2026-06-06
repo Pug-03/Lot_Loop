@@ -36,8 +36,7 @@ export default function IdleReset() {
   async function doReset() {
     clearTimers();
     setWarnAt(null);
-    await resetSession();
-    try { localStorage.removeItem("pdpaAccepted"); } catch {}
+    await resetSession(); // also clears PDPA consent for the next customer
     nav("/identity", { replace: true });
   }
 

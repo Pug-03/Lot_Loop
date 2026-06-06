@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "../state/SessionContext";
@@ -11,14 +11,8 @@ type Step = "choose" | "card-insert" | "thaid-handshake" | "face" | "done";
 export default function Page1Identity() {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const { identityMethod, setIdentityMethod, setIdentityVerified } = useSession();
+  const { identityMethod, setIdentityMethod, setIdentityVerified, consentAccepted, acceptConsent } = useSession();
   const [step, setStep] = useState<Step>("choose");
-  const [consentAccepted, setConsentAccepted] = useState(false);
-
-  useEffect(() => {
-    const v = localStorage.getItem("pdpaAccepted") === "1";
-    setConsentAccepted(v);
-  }, []);
 
   function chooseMethod(method: "card" | "thaid") {
     setIdentityMethod(method);
@@ -44,7 +38,7 @@ export default function Page1Identity() {
       <p className="page-subtitle">{t("page1.subtitle")}</p>
 
       {!consentAccepted ? (
-        <ConsentModal onAccept={() => { localStorage.setItem("pdpaAccepted", "1"); setConsentAccepted(true); }} />
+        <ConsentModal onAccept={acceptConsent} />
       ) : step === "choose" && (
         <div className="grid-2">
           <div
