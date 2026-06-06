@@ -18,8 +18,8 @@ export default function Page2Recycle() {
     nav("/select");
   }
 
-  function simulateScan() {
-    // Pick a deterministic-ish demo number from the catalogue
+  function captureTicket() {
+    // Read the number off the scanned old ticket and pre-select it.
     const idx = Math.floor(Math.random() * catalogue.length);
     const number = catalogue[idx] ?? "246810";
     setOldTicket(number);
@@ -59,7 +59,7 @@ export default function Page2Recycle() {
           </div>
           <div className="row" style={{ marginTop: 16 }}>
             <button className="btn ghost" onClick={() => setStep("ask")}>{t("common.back")}</button>
-            <button className="btn" onClick={simulateScan}>{t("page2.sim_scan")}</button>
+            <button className="btn" onClick={captureTicket}>{t("page2.scan_btn")}</button>
           </div>
         </div>
       )}

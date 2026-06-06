@@ -101,9 +101,9 @@ export default function Page4Payment() {
             </strong>
           </div>
           <div className="row" style={{ marginTop: 16 }}>
-            <button className="btn" onClick={() => insert(10)}>{t("page4.sim_insert_10")}</button>
-            <button className="btn" onClick={() => insert(50)}>{t("page4.sim_insert_50")}</button>
-            <button className="btn" onClick={() => insert(100)}>{t("page4.sim_insert_100")}</button>
+            <button className="btn" onClick={() => insert(10)}>{t("page4.insert_10")}</button>
+            <button className="btn" onClick={() => insert(50)}>{t("page4.insert_50")}</button>
+            <button className="btn" onClick={() => insert(100)}>{t("page4.insert_100")}</button>
             <button className="btn ghost" onClick={() => setPhase("method")}>{t("common.back")}</button>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function Page4Payment() {
           <div className="row" style={{ marginTop: 16, justifyContent: "center" }}>
             <button className="btn ghost" onClick={() => setPhase("method")}>{t("common.back")}</button>
             <button className="btn success" onClick={completePayment}>
-              {t("page4.sim_qr_paid")}
+              {t("page4.qr_paid")}
             </button>
           </div>
         </div>
@@ -159,7 +159,8 @@ export default function Page4Payment() {
   );
 }
 
-// Decorative QR-like SVG (kiosk simulation, not a real PromptPay payload).
+// Renders the PromptPay QR. Replace the pattern below with a real EMVCo
+// PromptPay payload (merchant ID + amount) when wiring the payment gateway.
 function PromptPayQR({ amount }: { amount: number }) {
   const N = 21;
   // Deterministic pseudo-random pattern seeded by amount

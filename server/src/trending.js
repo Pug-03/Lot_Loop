@@ -1,5 +1,5 @@
-// Mock pool of available lottery numbers + a "trending/lucky" subset.
-// In production this comes from the lottery operator's catalogue.
+// Pool of available lottery numbers + a "trending/lucky" subset.
+// Swap generateCatalogue() for a fetch from the lottery operator's catalogue API.
 
 const TRENDING = [
   "123456", "888888", "168168", "999999", "456789",
@@ -12,7 +12,7 @@ function pad6(n) {
 
 export function generateCatalogue(count = 200) {
   const set = new Set(TRENDING);
-  // Deterministic-ish spread so demo data is stable across restarts
+  // Deterministic spread so the catalogue is stable across restarts
   let seed = 7;
   while (set.size < count) {
     seed = (seed * 9301 + 49297) % 233280;

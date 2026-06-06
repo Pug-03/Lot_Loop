@@ -25,7 +25,7 @@ export default function Page1Identity() {
     setStep(method === "card" ? "card-insert" : "thaid-handshake");
   }
 
-  function handleSimAck() {
+  function handleAck() {
     setStep("face");
   }
 
@@ -82,8 +82,8 @@ export default function Page1Identity() {
             <button className="btn ghost" onClick={() => setStep("choose")}>
               {t("common.back")}
             </button>
-            <button className="btn" onClick={handleSimAck}>
-              {t("page1.sim_card_insert")}
+            <button className="btn" onClick={handleAck}>
+              {t("page1.card_insert")}
             </button>
           </div>
         </div>
@@ -101,8 +101,8 @@ export default function Page1Identity() {
             <button className="btn ghost" onClick={() => setStep("choose")}>
               {t("common.back")}
             </button>
-            <button className="btn" onClick={handleSimAck}>
-              {t("page1.sim_thaid_ack")}
+            <button className="btn" onClick={handleAck}>
+              {t("page1.thaid_ack")}
             </button>
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function Page1Identity() {
               {t("common.back")}
             </button>
             <button className="btn" onClick={handleFaceOk} disabled={scanning}>
-              {t("page1.sim_face_ok")}
+              {t("page1.face_ok_btn")}
             </button>
           </div>
         </div>

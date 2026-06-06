@@ -1,4 +1,4 @@
-// Smoke test: two simulated kiosks, verify locks broadcast and exclude correctly.
+// Smoke test: two kiosk clients, verify locks broadcast and exclude correctly.
 import { io } from "socket.io-client";
 
 const A = io("http://localhost:4000", { auth: { kioskId: "K-AAAA" }, transports: ["websocket"] });
