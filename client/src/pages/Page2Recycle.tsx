@@ -9,7 +9,7 @@ type Step = "ask" | "scan" | "done";
 export default function Page2Recycle() {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const { setOldTicket, oldTicketNumber, catalogue } = useSession();
+  const { setOldTicket, oldTicketNumber } = useSession();
   const [step, setStep] = useState<Step>("ask");
 
   function chooseUse() { setStep("scan"); }
@@ -20,8 +20,8 @@ export default function Page2Recycle() {
 
   function captureTicket() {
     // Read the number off the scanned old ticket and pre-select it.
-    const idx = Math.floor(Math.random() * catalogue.length);
-    const number = catalogue[idx] ?? "246810";
+    // (Simulated: a real ticket scanner/OCR provides this 6-digit number.)
+    const number = Math.floor(Math.random() * 1_000_000).toString().padStart(6, "0");
     setOldTicket(number);
     setStep("done");
   }

@@ -23,15 +23,17 @@ export const socket: Socket = io(SERVER_URL, {
 export type LockEntry = { number: string; kioskId: string; expiresAt: number };
 
 export type Snapshot = {
-  catalogue: string[];
   trending: string[];
   locks: LockEntry[];
+  sold: string[];
   ttlMs: number;
 };
 
 export type LockUpdate =
   | { type: "locked"; number: string; kioskId: string; expiresAt: number }
   | { type: "unlocked"; number: string };
+
+export type SoldUpdate = { numbers: string[] };
 
 export function acquireLock(number: string): Promise<{ ok: boolean; reason?: string; entry?: LockEntry }> {
   return new Promise((resolve) => {
@@ -48,5 +50,14 @@ export function releaseLock(number: string): Promise<{ ok: boolean; reason?: str
 export function requestRandom(): Promise<{ ok: boolean; number?: string; entry?: LockEntry; reason?: string }> {
   return new Promise((resolve) => {
     socket.emit("lock:random", {}, resolve);
+  });
+}
+
+// Finalize a purchase: permanently remove these numbers from the system.
+export function purchaseNumbers(
+  numbers: string[]
+): Promise<{ ok: boolean; sold?: string[]; reason?: string; unavailable?: string[] }> {
+  return new Promise((resolve) => {
+    socket.emit("purchase", { numbers }, resolve);
   });
 }

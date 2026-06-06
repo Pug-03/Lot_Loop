@@ -27,6 +27,13 @@ Open http://localhost:5173 in two browser tabs (or two machines on the LAN) to r
 
 The lock store is a single-file abstraction (`server/src/lockStore.js`). Swap the in-memory implementation for Redis SETNX + Pub/Sub when you need multi-server scaling — the rest of the system doesn't change.
 
+## Numbers and sold-out handling
+
+- The full range **000000–999999** is sellable. Any 6-digit number can be searched or selected directly — there is no fixed catalogue.
+- Selecting a number places a temporary 90s **hold** (lock) so two kiosks can't take it at once.
+- Completing payment **permanently sells** the number: it is removed from the system and never offered again. Sold numbers are persisted to `server/data/sold.json` (configurable via the `SOLD_FILE` env var) so they survive a server restart. Swap this JSON file for your authoritative DB/Redis set behind the same `soldStore` surface for production.
+- A sold number is broadcast (`sold:update`) to every kiosk in real time, and the server rejects any later attempt to lock or buy it (`reason: "sold"`).
+
 ## Hardware integration
 
 Face scan, ID card reader, ThaID handshake, ticket camera, coin acceptor, and PromptPay payment confirmation are each driven from a single on-screen action in the flow. Wire each one to its device by replacing that action's handler with the vendor SDK call:

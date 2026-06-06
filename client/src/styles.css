@@ -229,6 +229,14 @@ button {
   border-color: var(--good);
   color: var(--good);
 }
+.num-tile.sold {
+  background: var(--panel);
+  border-color: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+  text-decoration: line-through;
+  opacity: 0.6;
+}
 .num-tile .sub {
   display: block; font-size: 0.7rem; letter-spacing: 0;
   font-family: inherit; font-weight: 500; color: inherit; opacity: 0.85;

@@ -3,10 +3,11 @@ import {
   socket,
   kioskId,
   Snapshot,
-  LockEntry,
   LockUpdate,
+  SoldUpdate,
   acquireLock as acquireLockSocket,
   releaseLock as releaseLockSocket,
+  purchaseNumbers,
 } from "../socket";
 
 export type SelectedNumber = {
@@ -20,11 +21,12 @@ type IdentityMethod = "card" | "thaid" | null;
 type SessionState = {
   kioskId: string;
   connected: boolean;
-  catalogue: string[];
   trending: string[];
   ttlMs: number;
   // Map number -> kioskId of holder. If holder === our kioskId, it's our hold.
   locks: Map<string, { kioskId: string; expiresAt: number }>;
+  // Numbers permanently sold and removed from the system.
+  sold: Set<string>;
 
   // Wizard state
   identityMethod: IdentityMethod;
@@ -43,6 +45,9 @@ type SessionState = {
   deselectNumber: (number: string) => Promise<void>;
   clearSelection: () => Promise<void>;
 
+  // Finalize the purchase: permanently removes the selected numbers from the system.
+  purchaseSelected: () => Promise<{ ok: boolean; reason?: string; unavailable?: string[] }>;
+
   resetSession: () => Promise<void>;
 };
 
@@ -53,10 +58,10 @@ const DISCOUNT_AMOUNT = 5;
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [connected, setConnected] = useState(socket.connected);
-  const [catalogue, setCatalogue] = useState<string[]>([]);
   const [trending, setTrending] = useState<string[]>([]);
   const [ttlMs, setTtlMs] = useState(90_000);
   const [locks, setLocks] = useState<Map<string, { kioskId: string; expiresAt: number }>>(new Map());
+  const [sold, setSold] = useState<Set<string>>(new Set());
 
   const [identityMethod, setIdentityMethod] = useState<IdentityMethod>(null);
   const [identityVerified, setIdentityVerified] = useState(false);
@@ -68,12 +73,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     function onConnect() { setConnected(true); }
     function onDisconnect() { setConnected(false); }
     function onSnapshot(snap: Snapshot) {
-      setCatalogue(snap.catalogue);
       setTrending(snap.trending);
       setTtlMs(snap.ttlMs);
       const m = new Map<string, { kioskId: string; expiresAt: number }>();
       for (const l of snap.locks) m.set(l.number, { kioskId: l.kioskId, expiresAt: l.expiresAt });
       setLocks(m);
+      setSold(new Set(snap.sold));
     }
     function onLockUpdate(u: LockUpdate) {
       setLocks((prev) => {
@@ -86,15 +91,31 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         return next;
       });
     }
+    function onSoldUpdate(u: SoldUpdate) {
+      setSold((prev) => {
+        const next = new Set(prev);
+        for (const n of u.numbers) next.add(n);
+        return next;
+      });
+      // A number sold elsewhere can no longer be held or kept in our cart.
+      setLocks((prev) => {
+        const next = new Map(prev);
+        for (const n of u.numbers) next.delete(n);
+        return next;
+      });
+      setSelected((prev) => prev.filter((s) => !u.numbers.includes(s.number)));
+    }
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("snapshot", onSnapshot);
     socket.on("lock:update", onLockUpdate);
+    socket.on("sold:update", onSoldUpdate);
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("snapshot", onSnapshot);
       socket.off("lock:update", onLockUpdate);
+      socket.off("sold:update", onSoldUpdate);
     };
   }, []);
 
@@ -136,6 +157,27 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setSelected([]);
   }, [selected]);
 
+  const purchaseSelected = useCallback<SessionState["purchaseSelected"]>(async () => {
+    if (selected.length === 0) return { ok: false, reason: "no-numbers" };
+    const numbers = selected.map((s) => s.number);
+    const res = await purchaseNumbers(numbers);
+    if (res.ok) {
+      // Permanently sold. Keep `selected` for the on-screen receipt; mark them
+      // sold locally (the server only broadcasts sold:update to OTHER kiosks).
+      setSold((prev) => {
+        const next = new Set(prev);
+        for (const n of numbers) next.add(n);
+        return next;
+      });
+      setLocks((prev) => {
+        const next = new Map(prev);
+        for (const n of numbers) next.delete(n);
+        return next;
+      });
+    }
+    return res;
+  }, [selected]);
+
   const resetSession = useCallback(async () => {
     await Promise.all(selected.map((s) => releaseLockSocket(s.number)));
     setSelected([]);
@@ -148,10 +190,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<SessionState>(() => ({
     kioskId,
     connected,
-    catalogue,
     trending,
     ttlMs,
     locks,
+    sold,
     identityMethod,
     identityVerified,
     oldTicketUsed,
@@ -165,11 +207,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     selectNumber,
     deselectNumber,
     clearSelection,
+    purchaseSelected,
     resetSession,
   }), [
-    connected, catalogue, trending, ttlMs, locks,
+    connected, trending, ttlMs, locks, sold,
     identityMethod, identityVerified, oldTicketUsed, oldTicketNumber, selected,
-    setOldTicket, selectNumber, deselectNumber, clearSelection, resetSession,
+    setOldTicket, selectNumber, deselectNumber, clearSelection, purchaseSelected, resetSession,
   ]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

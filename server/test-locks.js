@@ -7,6 +7,8 @@ const B = io("http://localhost:4000", { auth: { kioskId: "K-BBBB" }, transports:
 const events = [];
 A.on("lock:update", (u) => events.push({ who: "A-saw", ...u }));
 B.on("lock:update", (u) => events.push({ who: "B-saw", ...u }));
+A.on("sold:update", (u) => events.push({ who: "A-saw-sold", ...u }));
+B.on("sold:update", (u) => events.push({ who: "B-saw-sold", ...u }));
 
 function emit(sock, ev, data) {
   return new Promise((resolve) => sock.emit(ev, data, resolve));
@@ -33,6 +35,13 @@ await emit(A, "lock:release", { number: "123456" });
 await new Promise((r) => setTimeout(r, 50));
 const r4 = await emit(B, "lock:acquire", { number: "123456" });
 console.log("B re-lock result:", r4.ok);
+
+console.log("\n=== TEST 5: B purchases 123456 -> permanently sold; A can never acquire it ===");
+const p1 = await emit(B, "purchase", { numbers: ["123456"] });
+console.log("B purchase result:", p1.ok, "sold:", p1.sold);
+await new Promise((r) => setTimeout(r, 50));
+const r5 = await emit(A, "lock:acquire", { number: "123456" });
+console.log("A acquire sold number:", r5.ok, "reason:", r5.reason, "(expect ok=false reason=sold)");
 
 console.log("\n=== TEST 5: A disconnects, B should see 999999... wait, A holds nothing now. ===");
 console.log("=== TEST 5b: B disconnects with held locks; auto-release ===");

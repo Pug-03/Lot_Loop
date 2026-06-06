@@ -6,7 +6,14 @@
       "Bash(npx tsc *)",
       "Bash(curl *)",
       "Bash(node test-locks.js)",
-      "PowerShell(npx --prefix C:\\\\VS_Code_Pug\\\\Lot_Loop_Test\\\\client tsc -p C:\\\\VS_Code_Pug\\\\Lot_Loop_Test\\\\client\\\\tsconfig.json --pretty false 2>&1 | Select-Object -First 60)"
+      "PowerShell(npx --prefix C:\\\\VS_Code_Pug\\\\Lot_Loop_Test\\\\client tsc -p C:\\\\VS_Code_Pug\\\\Lot_Loop_Test\\\\client\\\\tsconfig.json --pretty false 2>&1 | Select-Object -First 60)",
+      "Bash(PORT=4055 SOLD_FILE=\"$\\(pwd\\)/data/sold.test.json\" node src/index.js)",
+      "Bash(TEST_URL=\"http://localhost:4055\" node test-purchase.mjs)",
+      "Bash(ls node_modules/socket.io-client)",
+      "Bash(ls client/node_modules/socket.io-client)",
+      "Bash(rm -f test-purchase.mjs data/sold.test.json data/sold.test.json.tmp)",
+      "Bash(rmdir data *)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 4055 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { Stop-Process -Id $c.OwningProcess -Force; \"stopped pid $\\($c.OwningProcess\\)\" } else { \"nothing on 4055\" })"
     ]
   }
 }

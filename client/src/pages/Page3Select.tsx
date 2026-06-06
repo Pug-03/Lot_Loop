@@ -12,10 +12,9 @@ export default function Page3Select() {
   const { t } = useTranslation();
   const nav = useNavigate();
   const {
-    kioskId,
-    catalogue,
     trending,
     locks,
+    sold,
     selected,
     selectNumber,
     deselectNumber,
@@ -41,14 +40,15 @@ export default function Page3Select() {
     });
   }, [autoTried, oldTicketNumber, selectNumber, t]);
 
-  function tileState(number: string): "free" | "self" | "other" | "selected" {
+  function tileState(number: string): "free" | "self" | "other" | "selected" | "sold" {
     const sel = selected.some((s) => s.number === number);
     if (sel) return "selected";
+    if (sold.has(number)) return "sold";
     const lock = locks.get(number);
     if (!lock) return "free";
-    // Treat numbers locked by our kiosk as unavailable unless they are actively in `selected`.
-    // This prevents showing our own held tickets as "self" by default (they look like already claimed/announced).
-    return lock.kioskId === kioskId ? "other" : "other";
+    // Any active lock (ours or another kiosk's) that isn't in `selected` is
+    // shown as unavailable so held tickets don't look claimable.
+    return "other";
   }
 
   async function onTileClick(number: string, source: "trending" | "search" | "random" | "set") {
@@ -58,18 +58,25 @@ export default function Page3Select() {
       await deselectNumber(number);
       return;
     }
+    if (state === "sold") {
+      setError(t("page3.sold"));
+      return;
+    }
     if (state === "other") {
       setError(t("page3.locked_other"));
       return;
     }
     if (mode === "set") {
-      // Pick `number` and the next 4 free ones from catalogue
+      // Pick `number` and the next free numbers in sequence across the full range.
       const targets = [number];
-      for (const c of catalogue) {
-        if (targets.length >= SET_SIZE) break;
-        if (targets.includes(c)) continue;
-        const s = tileState(c);
-        if (s === "free") targets.push(c);
+      const start = Number(number);
+      let cursor = start;
+      while (targets.length < SET_SIZE) {
+        cursor = (cursor + 1) % 1_000_000;
+        if (cursor === start) break; // wrapped all the way around
+        const candidate = cursor.toString().padStart(6, "0");
+        if (targets.includes(candidate)) continue;
+        if (tileState(candidate) === "free") targets.push(candidate);
       }
       for (const n of targets) {
         const r = await selectNumber(n, "set");
@@ -92,11 +99,11 @@ export default function Page3Select() {
       setError(t("page3.invalid"));
       return;
     }
-    if (!catalogue.includes(trimmed)) {
-      setError(t("page3.not_found"));
+    const state = tileState(trimmed);
+    if (state === "sold") {
+      setError(t("page3.sold"));
       return;
     }
-    const state = tileState(trimmed);
     if (state === "other") {
       setError(t("page3.locked_other"));
       return;
@@ -104,7 +111,7 @@ export default function Page3Select() {
     if (state === "selected") return;
     const r = await selectNumber(trimmed, "search");
     if (!r.ok) {
-      setError(t("page3.locked_other"));
+      setError(r.reason === "sold" ? t("page3.sold") : t("page3.locked_other"));
     } else {
       setSearch("");
       // search-to-buy: go to payment after successful select
@@ -213,15 +220,17 @@ export default function Page3Select() {
                   state === "selected" ? "num-tile selected"
                   : state === "self" ? "num-tile locked-self"
                   : state === "other" ? "num-tile locked-other"
+                  : state === "sold" ? "num-tile sold"
                   : "num-tile";
                 return (
                   <div
                     key={n}
                     className={cls}
                     onClick={() => onTileClick(n, "trending")}
-                    title={state === "other" ? t("page3.locked_other") : ""}
+                    title={state === "sold" ? t("page3.sold") : state === "other" ? t("page3.locked_other") : ""}
                   >
                     {n}
+                    {state === "sold" && <span className="sub"><Icon icon="mdi:close-circle-outline" width={14} height={14} /> {t("page3.sold")}</span>}
                     {state === "other" && <span className="sub"><Icon icon="mdi:lock-outline" width={14} height={14} /> {t("page3.unavailable")}</span>}
                     {state === "self" && <span className="sub">{t("page3.locked_self")}</span>}
                   </div>

@@ -1,32 +1,36 @@
-// Pool of available lottery numbers + a "trending/lucky" subset.
-// Swap generateCatalogue() for a fetch from the lottery operator's catalogue API.
+// Lottery numbers span the full 6-digit range (000000-999999). Every valid
+// 6-digit string is a sellable number unless it has been sold or is currently
+// locked by another kiosk. A small "trending/lucky" subset is surfaced first.
 
 const TRENDING = [
   "123456", "888888", "168168", "999999", "456789",
   "112233", "555555", "246810", "369369", "777777",
 ];
 
+export const NUMBER_MAX = 1_000_000; // exclusive: numbers are 000000..999999
+
 function pad6(n) {
   return n.toString().padStart(6, "0");
-}
-
-export function generateCatalogue(count = 200) {
-  const set = new Set(TRENDING);
-  // Deterministic spread so the catalogue is stable across restarts
-  let seed = 7;
-  while (set.size < count) {
-    seed = (seed * 9301 + 49297) % 233280;
-    set.add(pad6(seed % 1_000_000));
-  }
-  return [...set];
 }
 
 export function getTrending() {
   return [...TRENDING];
 }
 
-export function randomFromCatalogue(catalogue, excluded = new Set()) {
-  const candidates = catalogue.filter((n) => !excluded.has(n));
-  if (candidates.length === 0) return null;
-  return candidates[Math.floor(Math.random() * candidates.length)];
+// Pick a random available 6-digit number from the full range.
+// `isTaken(number)` returns true for numbers that are sold or already locked.
+// Returns null only if the whole range is effectively exhausted.
+export function randomFromRange(isTaken) {
+  // Try random probes first (fast while the range is mostly empty).
+  for (let i = 0; i < 50; i++) {
+    const candidate = pad6(Math.floor(Math.random() * NUMBER_MAX));
+    if (!isTaken(candidate)) return candidate;
+  }
+  // Fallback: linear scan from a random offset (handles a nearly-full range).
+  const start = Math.floor(Math.random() * NUMBER_MAX);
+  for (let i = 0; i < NUMBER_MAX; i++) {
+    const candidate = pad6((start + i) % NUMBER_MAX);
+    if (!isTaken(candidate)) return candidate;
+  }
+  return null;
 }

@@ -10,7 +10,7 @@ type Phase = "method" | "cash" | "qr" | "printing" | "done";
 export default function Page4Payment() {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const { selected, pricePerTicket, discount, resetSession } = useSession();
+  const { selected, pricePerTicket, discount, resetSession, purchaseSelected } = useSession();
 
   const subtotal = selected.length * pricePerTicket;
   const total = Math.max(0, subtotal - discount);
@@ -18,6 +18,7 @@ export default function Page4Payment() {
   const [method, setMethod] = useState<Method>(null);
   const [phase, setPhase] = useState<Phase>("method");
   const [inserted, setInserted] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (selected.length === 0) {
@@ -39,8 +40,19 @@ export default function Page4Payment() {
     });
   }
 
-  function completePayment() {
+  async function completePayment() {
     setPhase("printing");
+    // Permanently remove the numbers from the system before printing tickets.
+    const res = await purchaseSelected();
+    if (!res.ok) {
+      // A number was taken/sold elsewhere before payment finalized. Send the
+      // customer back to choose again. (A real cash flow would refund here.)
+      setError(t("page4.purchase_failed"));
+      setPhase("method");
+      setInserted(0);
+      setTimeout(() => nav("/select", { replace: true }), 2500);
+      return;
+    }
     setTimeout(() => setPhase("done"), 1500);
   }
 
@@ -52,6 +64,8 @@ export default function Page4Payment() {
   return (
     <div>
       <h1 className="page-title">{t("page4.title")}</h1>
+
+      {error && <div className="alert" style={{ marginBottom: 16 }}>{error}</div>}
 
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="row between">
