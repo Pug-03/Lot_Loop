@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useSession } from "../state/SessionContext";
 import { Icon } from "@iconify/react";
 import ConsentModal from "../components/ConsentModal";
+import FaceScan from "../components/FaceScan";
 
 type Step = "choose" | "card-insert" | "thaid-handshake" | "face" | "done";
 
@@ -12,7 +13,6 @@ export default function Page1Identity() {
   const nav = useNavigate();
   const { identityMethod, setIdentityMethod, setIdentityVerified } = useSession();
   const [step, setStep] = useState<Step>("choose");
-  const [scanning, setScanning] = useState(false);
   const [consentAccepted, setConsentAccepted] = useState(false);
 
   useEffect(() => {
@@ -29,13 +29,9 @@ export default function Page1Identity() {
     setStep("face");
   }
 
-  function handleFaceOk() {
-    setScanning(true);
-    setTimeout(() => {
-      setScanning(false);
-      setIdentityVerified(true);
-      setStep("done");
-    }, 10000); // require at least 10s for verification
+  function handleFaceVerified() {
+    setIdentityVerified(true);
+    setStep("done");
   }
 
   function continueNext() {
@@ -112,16 +108,15 @@ export default function Page1Identity() {
         <div className="card">
           <div className="row between">
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <Icon icon="mdi:camera" width="20" height="20" /> {scanning ? t("page1.face_scanning") : t("page1.face_prompt")}
+              <Icon icon="mdi:camera" width="20" height="20" /> {t("page1.face_prompt")}
             </span>
-            <span className={`badge ${scanning ? "warn" : "ok"}`}>{scanning ? "..." : "READY"}</span>
           </div>
-          <div className="row" style={{ marginTop: 16 }}>
-            <button className="btn ghost" onClick={() => setStep("choose")} disabled={scanning}>
+          <div style={{ marginTop: 16 }}>
+            <FaceScan onVerified={handleFaceVerified} />
+          </div>
+          <div className="row" style={{ marginTop: 16, justifyContent: "center" }}>
+            <button className="btn ghost" onClick={() => setStep("choose")}>
               {t("common.back")}
-            </button>
-            <button className="btn" onClick={handleFaceOk} disabled={scanning}>
-              {t("page1.face_ok_btn")}
             </button>
           </div>
         </div>

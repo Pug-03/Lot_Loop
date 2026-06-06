@@ -320,6 +320,68 @@ select.text {
 
 .note { color: var(--muted); font-size: 0.9rem; }
 
+/* Face capture (liveness) */
+.facescan {
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+.face-frame {
+  position: relative;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #0d1320;
+  box-shadow: 0 0 0 3px var(--border);
+  transition: box-shadow 0.4s ease;
+}
+.face-video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scaleX(-1); /* mirror like a selfie view */
+}
+.face-ring {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  transform: rotate(-90deg); /* start the arc at the top */
+  pointer-events: none;
+}
+.face-ring .ring-track {
+  fill: none; stroke: rgba(255,255,255,0.18); stroke-width: 3;
+}
+.face-ring .ring-progress {
+  fill: none; stroke: transparent; stroke-width: 3; stroke-linecap: round;
+  transition: stroke-dashoffset 0.12s linear, stroke 0.3s ease;
+}
+.face-frame.holding { box-shadow: 0 0 0 3px rgba(47,111,237,0.45); }
+.face-frame.holding .ring-progress { stroke: var(--accent); }
+.face-frame.verified {
+  box-shadow: 0 0 0 4px var(--good), 0 0 38px rgba(31,175,96,0.55);
+  animation: face-glow 0.9s ease;
+}
+.face-frame.verified .ring-progress { stroke: var(--good); }
+@keyframes face-glow {
+  0% { box-shadow: 0 0 0 4px var(--good), 0 0 0 rgba(31,175,96,0); }
+  60% { box-shadow: 0 0 0 4px var(--good), 0 0 52px rgba(31,175,96,0.75); }
+  100% { box-shadow: 0 0 0 4px var(--good), 0 0 38px rgba(31,175,96,0.55); }
+}
+.face-check {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  color: var(--good);
+  background: rgba(31,175,96,0.12);
+  animation: fade-in 240ms ease-out both;
+}
+.face-status {
+  margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--muted);
+  min-height: 1.4em; text-align: center;
+}
+.face-status.holding { color: var(--accent); }
+.face-status.verified { color: var(--good); }
+.face-error {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  color: var(--bad); text-align: center; padding: 24px;
+}
+
 /* Modal entrance */
 .modal-back { animation: fade-in 180ms ease-out both; }
 .modal { animation: modal-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
