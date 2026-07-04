@@ -9,20 +9,20 @@ type Step = "ask" | "scan" | "done";
 export default function Page2Recycle() {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const { setOldTicket, oldTicketNumber } = useSession();
+  const { setOldTicketUsed } = useSession();
   const [step, setStep] = useState<Step>("ask");
 
   function chooseUse() { setStep("scan"); }
   function chooseSkip() {
-    setOldTicket(null);
+    setOldTicketUsed(false);
     nav("/select");
   }
 
   function captureTicket() {
-    // Read the number off the scanned old ticket and pre-select it.
-    // (Simulated: a real ticket scanner/OCR provides this 6-digit number.)
-    const number = Math.floor(Math.random() * 1_000_000).toString().padStart(6, "0");
-    setOldTicket(number);
+    // The customer hands back an old ticket to receive the discount. We only
+    // record THAT a ticket was returned — the old number is not read, shown, or
+    // carried into the cart/purchase flow.
+    setOldTicketUsed(true);
     setStep("done");
   }
 
@@ -63,17 +63,14 @@ export default function Page2Recycle() {
         </div>
       )}
 
-      {step === "done" && oldTicketNumber && (
+      {step === "done" && (
         <div className="card">
           <div className="row between">
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <Icon icon="mdi:check-circle-outline" width={20} height={20} /> {t("page2.scanned")}
+              <Icon icon="mdi:check-circle-outline" width={20} height={20} /> {t("page2.returned")}
             </span>
             <span className="badge ok">−5 {t("common.baht")}</span>
           </div>
-          <p style={{ fontSize: "1.2rem" }}>
-            {t("page2.prefilled", { number: oldTicketNumber })}
-          </p>
           <p className="note">{t("page2.discount")}</p>
           <button className="btn big full" onClick={continueNext}>
             <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>

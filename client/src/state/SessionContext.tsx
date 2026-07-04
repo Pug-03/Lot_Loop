@@ -35,14 +35,15 @@ type SessionState = {
   identityMethod: IdentityMethod;
   identityVerified: boolean;
   oldTicketUsed: boolean;
-  oldTicketNumber: string | null;
   selected: SelectedNumber[];
   pricePerTicket: number;
   discount: number;
 
   setIdentityMethod: (m: IdentityMethod) => void;
   setIdentityVerified: (v: boolean) => void;
-  setOldTicket: (number: string | null) => void;
+  // Mark whether the customer recycled an old ticket (drives the discount only —
+  // the old ticket's number is intentionally not tracked or carried forward).
+  setOldTicketUsed: (used: boolean) => void;
 
   selectNumber: (number: string, source: SelectedNumber["source"]) => Promise<{ ok: boolean; reason?: string }>;
   deselectNumber: (number: string) => Promise<void>;
@@ -70,7 +71,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [identityMethod, setIdentityMethod] = useState<IdentityMethod>(null);
   const [identityVerified, setIdentityVerified] = useState(false);
   const [oldTicketUsed, setOldTicketUsed] = useState(false);
-  const [oldTicketNumber, setOldTicketNumber] = useState<string | null>(null);
   const [selected, setSelected] = useState<SelectedNumber[]>([]);
 
   useEffect(() => {
@@ -130,16 +130,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(t);
   }, []);
 
-  const setOldTicket = useCallback((number: string | null) => {
-    if (number) {
-      setOldTicketUsed(true);
-      setOldTicketNumber(number);
-    } else {
-      setOldTicketUsed(false);
-      setOldTicketNumber(null);
-    }
-  }, []);
-
   const selectNumber = useCallback<SessionState["selectNumber"]>(async (number, source) => {
     if (selected.some((s) => s.number === number)) return { ok: true };
     const res = await acquireLockSocket(number);
@@ -192,7 +182,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setIdentityMethod(null);
     setIdentityVerified(false);
     setOldTicketUsed(false);
-    setOldTicketNumber(null);
   }, [selected]);
 
   const value = useMemo<SessionState>(() => ({
@@ -207,13 +196,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     identityMethod,
     identityVerified,
     oldTicketUsed,
-    oldTicketNumber,
     selected,
     pricePerTicket: PRICE_PER_TICKET,
     discount: oldTicketUsed ? DISCOUNT_AMOUNT : 0,
     setIdentityMethod,
     setIdentityVerified,
-    setOldTicket,
+    setOldTicketUsed,
     selectNumber,
     deselectNumber,
     clearSelection,
@@ -221,8 +209,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     resetSession,
   }), [
     connected, trending, ttlMs, locks, sold, consentAccepted, acceptConsent,
-    identityMethod, identityVerified, oldTicketUsed, oldTicketNumber, selected,
-    setOldTicket, selectNumber, deselectNumber, clearSelection, purchaseSelected, resetSession,
+    identityMethod, identityVerified, oldTicketUsed, selected,
+    selectNumber, deselectNumber, clearSelection, purchaseSelected, resetSession,
   ]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

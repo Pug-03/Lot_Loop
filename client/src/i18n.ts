@@ -74,9 +74,9 @@ const resources = {
         use_old: "Yes, use an old ticket",
         skip: "No, continue",
         scan_prompt: "Insert old ticket into the slot or hold it under the camera",
-        scan_btn: "Capture old ticket",
+        scan_btn: "Return old ticket",
         scanned: "Ticket scanned",
-        prefilled: "Number {{number}} will be pre-selected",
+        returned: "Old ticket returned",
         discount: "5 THB discount applied",
       },
       page3: {
@@ -208,9 +208,9 @@ const resources = {
         use_old: "ใช่ ใช้สลากเก่า",
         skip: "ไม่ใช้ ดำเนินการต่อ",
         scan_prompt: "ใส่สลากเก่าในช่อง หรือถือไว้หน้ากล้อง",
-        scan_btn: "สแกนสลากเก่า",
+        scan_btn: "คืนสลากเก่า",
         scanned: "สแกนสลากเรียบร้อย",
-        prefilled: "หมายเลข {{number}} จะถูกเลือกล่วงหน้า",
+        returned: "คืนสลากเก่าเรียบร้อย",
         discount: "ใช้ส่วนลด 5 บาท",
       },
       page3: {

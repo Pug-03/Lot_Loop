@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "../state/SessionContext";
@@ -23,28 +23,17 @@ export default function Page3Select() {
     deselectNumber,
     pricePerTicket,
     discount,
-    oldTicketNumber,
   } = useSession();
 
   const [search, setSearch] = useState("");
   const [searchConfirm, setSearchConfirm] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("single");
   const [error, setError] = useState<string | null>(null);
-  const [autoTried, setAutoTried] = useState(false);
   const [randomCandidate, setRandomCandidate] = useState<string | null>(null);
   const [randomOpen, setRandomOpen] = useState(false);
   const [randomActive, setRandomActive] = useState(false);
   const [browsePage, setBrowsePage] = useState(0);
   const [gotoNum, setGotoNum] = useState("");
-
-  // Auto-attempt to pre-select the recycled-ticket number once.
-  useEffect(() => {
-    if (autoTried || !oldTicketNumber) return;
-    setAutoTried(true);
-    selectNumber(oldTicketNumber, "recycle").then((res) => {
-      if (!res.ok) setError(t("page3.locked_other"));
-    });
-  }, [autoTried, oldTicketNumber, selectNumber, t]);
 
   function tileState(number: string): "free" | "self" | "other" | "selected" | "sold" {
     const sel = selected.some((s) => s.number === number);
