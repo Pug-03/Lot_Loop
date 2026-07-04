@@ -7,6 +7,9 @@ import { Icon } from "@iconify/react";
 
 type Mode = "single" | "set";
 const SET_SIZE = 5;
+// Full Thai lottery range 000000..999999, browsed a page at a time.
+const BROWSE_PAGE_SIZE = 100;
+const BROWSE_TOTAL_PAGES = 1_000_000 / BROWSE_PAGE_SIZE; // 10,000 pages
 
 export default function Page3Select() {
   const { t } = useTranslation();
@@ -31,6 +34,8 @@ export default function Page3Select() {
   const [randomCandidate, setRandomCandidate] = useState<string | null>(null);
   const [randomOpen, setRandomOpen] = useState(false);
   const [randomActive, setRandomActive] = useState(false);
+  const [browsePage, setBrowsePage] = useState(0);
+  const [gotoNum, setGotoNum] = useState("");
 
   // Auto-attempt to pre-select the recycled-ticket number once.
   useEffect(() => {
@@ -180,6 +185,28 @@ export default function Page3Select() {
   const total = Math.max(0, subtotal - discount);
 
   const trendingTiles = useMemo(() => trending, [trending]);
+
+  // The 100 consecutive numbers shown on the current browse page.
+  const browseNumbers = useMemo(() => {
+    const start = browsePage * BROWSE_PAGE_SIZE;
+    return Array.from({ length: BROWSE_PAGE_SIZE }, (_, i) =>
+      (start + i).toString().padStart(6, "0")
+    );
+  }, [browsePage]);
+
+  function goToPage(p: number) {
+    setBrowsePage(Math.min(BROWSE_TOTAL_PAGES - 1, Math.max(0, p)));
+  }
+
+  function onGoto(e: React.FormEvent) {
+    e.preventDefault();
+    if (!gotoNum) return;
+    const n = Number(gotoNum);
+    if (Number.isNaN(n)) return;
+    // Jump to the page that contains the typed number (fewer digits are padded).
+    goToPage(Math.floor(n / BROWSE_PAGE_SIZE));
+    setGotoNum("");
+  }
 
   return (
     <div>
@@ -351,6 +378,95 @@ export default function Page3Select() {
             </div>
           </div>
         )}
+        </div>
+      </div>
+
+      <div className="card browse-card">
+        <div className="row between" style={{ flexWrap: "wrap", gap: 10 }}>
+          <strong style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <Icon icon="mdi:view-grid-outline" width={18} height={18} /> {t("page3.browse")}
+          </strong>
+          <div className="mode-toggle">
+            <button
+              className="btn ghost"
+              onClick={() => goToPage(0)}
+              disabled={browsePage === 0}
+              aria-label={t("page3.first")}
+              title={t("page3.first")}
+            ><Icon icon="mdi:page-first" width={18} height={18} /></button>
+            <button
+              className="btn ghost"
+              onClick={() => goToPage(browsePage - 1)}
+              disabled={browsePage === 0}
+              aria-label={t("common.back")}
+            ><Icon icon="mdi:chevron-left" width={18} height={18} /></button>
+            <span className="browse-page-label">
+              {t("page3.page_of", { page: browsePage + 1, total: BROWSE_TOTAL_PAGES })}
+            </span>
+            <button
+              className="btn ghost"
+              onClick={() => goToPage(browsePage + 1)}
+              disabled={browsePage === BROWSE_TOTAL_PAGES - 1}
+              aria-label={t("common.next")}
+            ><Icon icon="mdi:chevron-right" width={18} height={18} /></button>
+            <button
+              className="btn ghost"
+              onClick={() => goToPage(BROWSE_TOTAL_PAGES - 1)}
+              disabled={browsePage === BROWSE_TOTAL_PAGES - 1}
+              aria-label={t("page3.last")}
+              title={t("page3.last")}
+            ><Icon icon="mdi:page-last" width={18} height={18} /></button>
+          </div>
+        </div>
+
+        <form onSubmit={onGoto} className="row" style={{ marginTop: 12, gap: 8 }}>
+          <input
+            className="text"
+            inputMode="numeric"
+            maxLength={6}
+            placeholder={t("page3.goto_placeholder")}
+            value={gotoNum}
+            onChange={(e) => setGotoNum(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            autoComplete="off"
+            aria-label={t("page3.goto")}
+            style={{ maxWidth: 220 }}
+          />
+          <button className="btn" type="submit" disabled={gotoNum.length === 0}>
+            {t("page3.goto")}
+          </button>
+        </form>
+
+        <div className="browse-range">
+          {t("page3.browse_range", {
+            from: browseNumbers[0],
+            to: browseNumbers[browseNumbers.length - 1],
+          })}
+        </div>
+
+        <div className="browse-grid">
+          {browseNumbers.map((n) => {
+            const state = tileState(n);
+            const cls =
+              "num-cell"
+              + (state === "selected" ? " selected"
+                : state === "self" ? " self"
+                : state === "other" ? " other"
+                : state === "sold" ? " sold" : "");
+            return (
+              <button
+                key={n}
+                type="button"
+                className={cls}
+                onClick={() => onTileClick(n, "search")}
+                title={state === "sold" ? t("page3.sold") : state === "other" ? t("page3.locked_other") : ""}
+              >
+                {n}
+                {state === "sold" && <Icon icon="mdi:close-circle-outline" width={11} height={11} />}
+                {state === "other" && <Icon icon="mdi:lock-outline" width={11} height={11} />}
+                {state === "selected" && <Icon icon="mdi:check" width={11} height={11} />}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
