@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Runtime data (authoritative sold-numbers list — back up separately)
+data/
+
+# Logs & temp
+*.log
+*.tmp
+
+# Editor / OS
+.DS_Store
+Thumbs.db
