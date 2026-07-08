@@ -17,7 +17,9 @@
       "PowerShell(npx tsc -b)",
       "Bash(start *)",
       "Bash(netstat -ano)",
-      "Bash(taskkill *)"
+      "Bash(taskkill *)",
+      "Bash(git add *)",
+      "Bash(git status *)"
     ]
   }
 }
