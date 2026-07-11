@@ -3,16 +3,29 @@ import { io, Socket } from "socket.io-client";
 const SERVER_URL = (import.meta as any).env?.VITE_SERVER_URL || "http://localhost:4000";
 
 const KIOSK_ID_KEY = "kioskId";
-function getOrCreateKioskId(): string {
-  let id = localStorage.getItem(KIOSK_ID_KEY);
-  if (!id) {
-    id = "K-" + Math.random().toString(36).slice(2, 6).toUpperCase();
-    localStorage.setItem(KIOSK_ID_KEY, id);
-  }
+// A fixed kiosk NUMBER, resolved in priority order:
+//   1. ?kiosk=N in the URL     — handy for running two demo kiosks in two tabs
+//   2. VITE_KIOSK_ID env var   — set per machine when deploying a real kiosk
+//   3. previously stored value — persists across reloads on the same machine
+//   4. "1"                     — default
+// Whatever wins is remembered in localStorage so a reload keeps the same number.
+function resolveKioskId(): string {
+  const fromUrl = new URLSearchParams(window.location.search).get("kiosk");
+  const fromEnv = (import.meta as any).env?.VITE_KIOSK_ID as string | undefined;
+  const stored = localStorage.getItem(KIOSK_ID_KEY);
+  // Ignore values left by the old random-ID scheme (e.g. "K-3F9A", "K-<uuid>")
+  // so existing machines heal to a plain number without clearing storage.
+  const storedNumber = stored && /^\d+$/.test(stored) ? stored : null;
+  const id =
+    (fromUrl && fromUrl.trim()) ||
+    (fromEnv && String(fromEnv).trim()) ||
+    storedNumber ||
+    "1";
+  localStorage.setItem(KIOSK_ID_KEY, id);
   return id;
 }
 
-export const kioskId = getOrCreateKioskId();
+export const kioskId = resolveKioskId();
 
 export const socket: Socket = io(SERVER_URL, {
   auth: { kioskId },
