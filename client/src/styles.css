@@ -11,7 +11,7 @@
   --bad: #d92c3c;
   --warn: #e08a1e;
   --border: #d9e0ec;
-  --font-sans: "Segoe UI", "Sarabun", system-ui, -apple-system, sans-serif;
+  --font-sans: "Sarabun", "Segoe UI", system-ui, -apple-system, sans-serif;
   /* Deliberate monospace for ticket numbers — modern, tabular figures rather
      than the stock Courier New fallback. */
   --font-mono: ui-monospace, "Cascadia Code", "Cascadia Mono", "Segoe UI Mono", Consolas, "Roboto Mono", monospace;
