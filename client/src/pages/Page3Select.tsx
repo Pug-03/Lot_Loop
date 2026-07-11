@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useSession } from "../state/SessionContext";
 import { requestRandom, releaseLock } from "../socket";
 import { Icon } from "@iconify/react";
+import NumberPad from "../components/NumberPad";
 
 type Mode = "single" | "set";
 const SET_SIZE = 5;
@@ -29,6 +30,7 @@ export default function Page3Select() {
   const [randomCandidate, setRandomCandidate] = useState<string | null>(null);
   const [randomOpen, setRandomOpen] = useState(false);
   const [randomActive, setRandomActive] = useState(false);
+  const [keypadOpen, setKeypadOpen] = useState(false);
 
   function tileState(number: string): "free" | "self" | "other" | "selected" | "sold" {
     const sel = selected.some((s) => s.number === number);
@@ -83,8 +85,14 @@ export default function Page3Select() {
 
   async function onSearch(e: React.FormEvent) {
     e.preventDefault();
+    await runSearch(search);
+  }
+
+  // Reserve the typed number, then ask for confirmation. Shared by the form
+  // submit and the on-screen keypad so both behave identically.
+  async function runSearch(raw: string) {
     setError(null);
-    const trimmed = search.trim();
+    const trimmed = raw.trim();
     if (!/^\d{6}$/.test(trimmed)) {
       setError(t("page3.invalid"));
       return;
@@ -196,17 +204,17 @@ export default function Page3Select() {
           <div className="card" style={{ marginBottom: 16 }}>
             <strong>{t("page3.search")}</strong>
             <form onSubmit={onSearch} style={{ marginTop: 10 }}>
+              {/* readOnly + the on-screen keypad: real kiosks have no physical
+                  keyboard, and readOnly stops the OS keyboard from popping up. */}
               <input
                 className="text"
-                inputMode="numeric"
-                maxLength={6}
+                readOnly
                 placeholder={t("page3.search_placeholder")}
                 value={search}
-                onChange={(e) => setSearch(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                autoComplete="off"
-                autoCorrect="off"
-                spellCheck={false}
+                onClick={() => setKeypadOpen(true)}
+                onFocus={() => setKeypadOpen(true)}
                 aria-label={t("page3.search")}
+                style={{ cursor: "pointer" }}
               />
               <div className="row" style={{ marginTop: 10, justifyContent: "flex-end" }}>
                 <button className="btn" type="submit" disabled={search.length !== 6}>
@@ -326,6 +334,20 @@ export default function Page3Select() {
               </div>
             </div>
           </div>
+        )}
+        {keypadOpen && (
+          <NumberPad
+            initial={search}
+            maxLength={6}
+            title={t("page3.keypad_title")}
+            submitLabel={t("page3.select")}
+            onClose={() => setKeypadOpen(false)}
+            onSubmit={(v) => {
+              setSearch(v);
+              setKeypadOpen(false);
+              runSearch(v);
+            }}
+          />
         )}
         {randomOpen && randomCandidate && (
           <div className="modal-back" onClick={handleRandomCancel}>

@@ -434,6 +434,68 @@ select.text {
 }
 .modal h3 { margin-top: 0; margin-bottom: 12px; letter-spacing: -0.01em; }
 
+/* Bottom sheet — slides up from the bottom of the screen */
+.sheet-back {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 100;
+}
+.sheet {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 22px 22px 0 0;
+  padding: 16px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+  width: 100%; max-width: 460px;
+  box-shadow: 0 -14px 44px rgba(0,0,0,0.28);
+}
+.sheet-handle {
+  width: 44px; height: 5px; border-radius: 999px;
+  background: var(--border);
+  margin: 0 auto 14px;
+}
+
+/* On-screen numeric keypad (kiosks have no physical keyboard) */
+.keypad-sheet h3 { text-align: center; }
+.keypad-display {
+  display: flex; gap: 8px; justify-content: center;
+  margin: 4px 0 18px;
+}
+.keypad-box {
+  width: 46px; height: 60px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--panel-2);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 1.9rem; font-weight: 700;
+}
+.keypad-box.filled { border-color: var(--accent); color: var(--text); }
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.keypad-key {
+  height: 64px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 1.7rem; font-weight: 700;
+  color: var(--text);
+  transition: filter 0.1s, background 0.1s;
+}
+.keypad-key:active { background: var(--border); filter: brightness(0.97); }
+.keypad-key.action { background: var(--panel); color: var(--muted); }
+.keypad-key:disabled { opacity: 0.4; cursor: not-allowed; }
+@media (max-width: 380px) {
+  .keypad-box { width: 40px; height: 52px; font-size: 1.6rem; }
+  .keypad-key { height: 56px; font-size: 1.5rem; }
+}
+
 .qr {
   display: grid; place-items: center;
   background: white; padding: 24px; border-radius: 16px;
@@ -524,6 +586,14 @@ select.text {
 @keyframes modal-in {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Bottom-sheet entrance: backdrop fades, panel slides up from the bottom edge */
+.sheet-back { animation: fade-in 200ms ease-out both; }
+.sheet { animation: sheet-up 320ms cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
