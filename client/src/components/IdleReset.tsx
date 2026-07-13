@@ -4,7 +4,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSession } from "../state/SessionContext";
 
 const IDLE_MS = 5 * 60 * 1000;
-const WARN_MS = 20 * 1000;
+// 45s (was 20s): older customers reading the screen or handling cash need more
+// time to notice the warning and tap "stay" before the session resets.
+const WARN_MS = 45 * 1000;
 const ACTIVITY_EVENTS = ["pointerdown", "keydown", "touchstart", "wheel"] as const;
 
 export default function IdleReset() {
@@ -77,7 +79,7 @@ export default function IdleReset() {
         <p className="note">{t("idle.body", { seconds: secondsLeft })}</p>
         <div className="row" style={{ marginTop: 14, justifyContent: "flex-end" }}>
           <button className="btn ghost" onClick={doReset}>{t("idle.reset_now")}</button>
-          <button className="btn" onClick={scheduleIdle}>{t("idle.stay")}</button>
+          <button className="btn big" onClick={scheduleIdle}>{t("idle.stay")}</button>
         </div>
       </div>
     </div>

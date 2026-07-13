@@ -31,6 +31,7 @@ export default function Page3Select() {
   const [randomOpen, setRandomOpen] = useState(false);
   const [randomActive, setRandomActive] = useState(false);
   const [keypadOpen, setKeypadOpen] = useState(false);
+  const [marqueePaused, setMarqueePaused] = useState(false);
 
   function tileState(number: string): "free" | "self" | "other" | "selected" | "sold" {
     const sel = selected.some((s) => s.number === number);
@@ -199,6 +200,9 @@ export default function Page3Select() {
                 <button className={randomActive ? "btn" : "btn ghost"} onClick={onRandom}><Icon icon="mdi:cube" width={16} height={16} /> {t("page3.random")}</button>
               </div>
             </div>
+            {mode === "set" && (
+              <div className="note" style={{ marginTop: 10 }}>{t("page3.set_hint")}</div>
+            )}
           </div>
 
           <div className="card" style={{ marginBottom: 16 }}>
@@ -226,9 +230,20 @@ export default function Page3Select() {
           </div>
 
           <div className="card">
-            <strong style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><Icon icon="mdi:star-outline" width={18} height={18} /> {t("page3.trending")}</strong>
+            <div className="row between">
+              <strong style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><Icon icon="mdi:star-outline" width={18} height={18} /> {t("page3.trending")}</strong>
+              <button
+                type="button"
+                className="marquee-toggle"
+                onClick={() => setMarqueePaused((v) => !v)}
+                aria-pressed={marqueePaused}
+              >
+                <Icon icon={marqueePaused ? "mdi:play" : "mdi:pause"} width={16} height={16} />
+                {marqueePaused ? t("page3.play") : t("page3.pause")}
+              </button>
+            </div>
             <div className="lucky-marquee" style={{ marginTop: 12 }}>
-              <div className="lucky-track">
+              <div className={`lucky-track${marqueePaused ? " paused" : ""}`}>
                 {[...trendingTiles, ...trendingTiles].map((n, i) => {
                   const isClone = i >= trendingTiles.length;
                   const state = tileState(n);
@@ -356,7 +371,7 @@ export default function Page3Select() {
               <p style={{ fontSize: "1.6rem", fontFamily: "var(--font-mono)", marginTop: 8 }}>{randomCandidate}</p>
               <div className="row" style={{ marginTop: 16, justifyContent: "flex-end" }}>
                 <button className="btn ghost" onClick={handleRandomCancel}>{t("common.cancel")}</button>
-                <button className="btn ghost" onClick={handleRandomReroll} style={{ marginLeft: 8 }}>{t("page3.random")}</button>
+                <button className="btn ghost" onClick={handleRandomReroll} style={{ marginLeft: 8 }}>{t("page3.reroll")}</button>
                 <button className="btn" onClick={handleRandomTake} style={{ marginLeft: 8 }}>{t("page3.select")}</button>
               </div>
             </div>

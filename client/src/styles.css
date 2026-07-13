@@ -6,7 +6,9 @@
   --accent-2: #1d5bd6;
   --on-accent: #ffffff;
   --text: #1a2233;
-  --muted: #6b7a90;
+  /* Darkened from #6b7a90 to clear WCAG AA (4.5:1) on the light background —
+     the old value was ~4:1, hard to read for older eyes. */
+  --muted: #55637a;
   --good: #1faf60;
   --bad: #d92c3c;
   --warn: #e08a1e;
@@ -262,7 +264,7 @@ button {
   opacity: 0.6;
 }
 .num-tile .sub {
-  display: block; font-size: 0.7rem; letter-spacing: 0;
+  display: block; font-size: 0.85rem; letter-spacing: 0;
   font-family: inherit; font-weight: 500; color: inherit; opacity: 0.85;
   margin-top: 4px;
 }
@@ -282,6 +284,18 @@ button {
   animation: marquee 36s linear infinite;
 }
 .lucky-marquee:hover .lucky-track { animation-play-state: paused; }
+/* Touch kiosks never fire :hover, so the moving row is a hard target for
+   older / unsteady hands. This class (toggled by the Pause button) stops it. */
+.lucky-track.paused { animation-play-state: paused; }
+
+/* Small pause/play control sitting beside the "Trending" heading. */
+.marquee-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 6px 14px; font-weight: 600; font-size: 0.95rem;
+}
+.marquee-toggle:active { background: var(--border); }
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -410,7 +424,7 @@ select.text {
 .cart::-webkit-scrollbar {
   display: none; /* Safari/WebKit */
 }
-.cart .item .meta { font-family: inherit; font-size: 0.8rem; color: var(--muted); }
+.cart .item .meta { font-family: inherit; font-size: 0.95rem; color: var(--muted); }
 .cart .empty { color: var(--muted); padding: 16px; text-align: center; }
 
 .summary {
@@ -515,7 +529,7 @@ select.text {
   color: var(--bad); padding: 10px 14px; border-radius: 10px;
 }
 
-.note { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+.note { color: var(--muted); font-size: 1rem; line-height: 1.6; }
 
 /* Face capture (liveness) */
 .facescan {
