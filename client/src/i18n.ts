@@ -93,7 +93,7 @@ const resources = {
         pause: "Pause",
         play: "Play",
         single: "Single Ticket",
-        set: "Set of 5 (bundle)",
+        set: "Set of 5",
         mode: "Mode",
         cart: "Your cart",
         empty_cart: "No numbers selected yet",

@@ -206,7 +206,17 @@ button {
 .row.between { justify-content: space-between; }
 /* Mode buttons stay on one fixed row; box-sizing: border-box keeps the
    active/ghost border swap from changing button size, so nothing shifts. */
-.mode-toggle { display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; }
+.mode-toggle {
+  display: flex; flex-wrap: nowrap; gap: 8px; align-items: stretch;
+  /* Fixed group width + equal-flex buttons: the group's size and each button's
+     width stay constant across TH/EN, so switching language never resizes the
+     row — it stays anchored to the right edge of the card. */
+  width: min(100%, 400px);
+}
+.mode-toggle > .btn {
+  flex: 1 1 0; min-width: 0;
+  padding: 12px 8px; font-size: 1rem;
+}
 
 .badge {
   display: inline-block; padding: 4px 10px; border-radius: 999px;
