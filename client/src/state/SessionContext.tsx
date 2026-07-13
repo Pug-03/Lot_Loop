@@ -136,10 +136,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     if (!res.ok) return { ok: false, reason: res.reason };
     setSelected((prev) => [
       ...prev,
-      { number, expiresAt: res.entry?.expiresAt ?? Date.now() + 90_000, source },
+      { number, expiresAt: res.entry?.expiresAt ?? Date.now() + ttlMs, source },
     ]);
     return { ok: true };
-  }, [selected]);
+  }, [selected, ttlMs]);
 
   const deselectNumber = useCallback(async (number: string) => {
     await releaseLockSocket(number);

@@ -27,17 +27,23 @@ export default function Page4Payment() {
     }
   }, [selected.length, nav]);
 
+  // Finalize once the inserted cash covers the total. This lives in an effect,
+  // NOT inside the setInserted updater: updaters must be pure and React runs
+  // them twice under StrictMode, which previously fired completePayment twice
+  // (the 2nd purchase saw the numbers already sold and showed a false failure).
+  // Switching phase to "printing" makes the guard false, so it runs exactly once.
+  useEffect(() => {
+    if (phase === "cash" && inserted >= total) {
+      completePayment();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, inserted, total]);
+
   function chooseCash() { setMethod("cash"); setPhase("cash"); }
   function choosePromptpay() { setMethod("promptpay"); setPhase("qr"); }
 
   function insert(amount: number) {
-    setInserted((v) => {
-      const next = v + amount;
-      if (next >= total) {
-        completePayment();
-      }
-      return next;
-    });
+    setInserted((v) => v + amount);
   }
 
   async function completePayment() {

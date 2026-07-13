@@ -120,10 +120,12 @@ io.on("connection", (socket) => {
         unavailable.push(number);
         continue;
       }
-      const lock = lockStore.list().find((l) => l.number === number);
-      // Held by a different kiosk -> not ours to sell. (No lock = expired hold,
-      // still free, so we allow the buyer to finalize it.)
-      if (lock && lock.kioskId !== kioskId) unavailable.push(number);
+      const lock = lockStore.get(number);
+      // Authorize against the actual socket connection that holds the lock, not
+      // the client-supplied kioskId (which can be spoofed or collide on the
+      // default value). No lock = expired hold, still free, so we let the buyer
+      // finalize it.
+      if (lock && lock.ownerId !== ownerId) unavailable.push(number);
     }
     if (unavailable.length) {
       return ack?.({ ok: false, reason: "unavailable", unavailable });

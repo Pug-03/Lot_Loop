@@ -63,6 +63,13 @@ export function createLockStore({ ttlMs = DEFAULT_TTL_MS, onChange } = {}) {
     return released;
   }
 
+  // Full active entry (incl. ownerId) for server-side authorization checks.
+  // Returns null if there is no lock or it has already expired.
+  function get(number) {
+    const entry = locks.get(number);
+    return isActive(entry) ? entry : null;
+  }
+
   function list() {
     const now = Date.now();
     const out = [];
@@ -88,5 +95,5 @@ export function createLockStore({ ttlMs = DEFAULT_TTL_MS, onChange } = {}) {
     }
   }
 
-  return { acquire, release, releaseAllForOwner, list, sweep, ttlMs };
+  return { acquire, release, releaseAllForOwner, get, list, sweep, ttlMs };
 }
