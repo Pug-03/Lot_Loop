@@ -19,7 +19,17 @@
       "Bash(netstat -ano)",
       "Bash(taskkill *)",
       "Bash(git add *)",
-      "Bash(git status *)"
+      "Bash(git status *)",
+      "Bash(mkdir -p src/fonts)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(head -30 /tmp/sarabun.css)",
+      "Bash(git commit -m '@ *)",
+      "Bash(git push *)",
+      "Bash(git fetch *)",
+      "Bash(git checkout *)",
+      "Bash(git pull *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(git *)"
     ]
   }
 }
