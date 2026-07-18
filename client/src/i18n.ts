@@ -164,6 +164,9 @@ const resources = {
         paid: "Paid! Please collect your cash.",
         collect_cash: "Take your cash from the tray below.",
         finish: "Done",
+        next_draw_title: "Buy for the next draw?",
+        next_draw_desc: "Recycle this ticket for a 5 THB discount on a number for the next draw.",
+        buy_next: "Buy next draw",
         error: "Could not check the ticket. Please try again.",
         tier: {
           first: "1st Prize",
@@ -338,6 +341,9 @@ const resources = {
         paid: "จ่ายเงินสำเร็จ กรุณารับเงิน",
         collect_cash: "รับเงินได้ที่ถาดด้านล่าง",
         finish: "เสร็จสิ้น",
+        next_draw_title: "ซื้อสลากงวดถัดไปไหม?",
+        next_draw_desc: "นำสลากใบนี้มาหมุนเวียน รับส่วนลด 5 บาท สำหรับเลขงวดถัดไป",
+        buy_next: "ซื้องวดถัดไป",
         error: "ไม่สามารถตรวจสลากได้ กรุณาลองใหม่",
         tier: {
           first: "รางวัลที่ 1",

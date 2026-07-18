@@ -19,7 +19,7 @@ function readTicketNumber(): string {
 export default function Page5Claim() {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const { resetSession } = useSession();
+  const { resetSession, setFlowMode, setOldTicketUsed } = useSession();
 
   const [phase, setPhase] = useState<Phase>("insert");
   const [ticket, setTicket] = useState<string>("");
@@ -79,6 +79,14 @@ export default function Page5Claim() {
   async function onNewSession() {
     await resetSession();
     nav("/identity");
+  }
+
+  // Carry the same (already verified) customer straight into the buy flow for
+  // the next draw, recycling the ticket they just handed in for the discount.
+  function buyNextDraw() {
+    setOldTicketUsed(true);
+    setFlowMode("buy");
+    nav("/select");
   }
 
   return (
@@ -189,7 +197,24 @@ export default function Page5Claim() {
             </strong>
           </div>
           <p style={{ marginTop: 8 }}>{t("page5.collect_cash")}</p>
-          <button className="btn big full" onClick={onNewSession}>{t("page5.finish")}</button>
+
+          <div className="card" style={{ marginTop: 16, background: "var(--surface-2, rgba(0,0,0,0.04))" }}>
+            <div className="row between">
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <Icon icon="mdi:autorenew" width={20} height={20} /> <strong>{t("page5.next_draw_title")}</strong>
+              </span>
+              <span className="badge ok">−5 {t("common.baht")}</span>
+            </div>
+            <p className="note" style={{ marginTop: 8 }}>{t("page5.next_draw_desc")}</p>
+            <div className="row" style={{ marginTop: 16 }}>
+              <button className="btn ghost" onClick={onNewSession}>{t("page5.finish")}</button>
+              <button className="btn big" onClick={buyNextDraw}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <Icon icon="mdi:cart-plus" width={18} height={18} /> {t("page5.buy_next")}
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -29,7 +29,17 @@
       "Bash(git checkout *)",
       "Bash(git pull *)",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(node --check src/index.js)",
+      "Bash(node --check src/prizeStore.js)",
+      "Bash(cat)",
+      "Bash(node t_tmp.mjs)",
+      "Bash(rm -f t_tmp.mjs)",
+      "Bash(CLAIMED_FILE=./data/claimed-e2e.json PORT=4111 node src/index.js)",
+      "Bash(echo \"started pid $!\")",
+      "Read(//tmp/**)",
+      "Bash(kill 13255)",
+      "Bash(rm -f /c/VS_Code_Pug/Lot_Loop/server/data/claimed-e2e.json /tmp/srv.log /tmp/t.mjs)"
     ]
   }
 }
