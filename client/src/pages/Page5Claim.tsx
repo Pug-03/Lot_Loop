@@ -3,18 +3,25 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "../state/SessionContext";
 import { Icon } from "@iconify/react";
-import NumberPad from "../components/NumberPad";
 import { checkPrize, claimPrize, Prize } from "../socket";
 
-type Phase = "enter" | "checking" | "won" | "no-prize" | "claimed" | "dispensing" | "done";
+type Phase = "insert" | "checking" | "won" | "no-prize" | "claimed" | "dispensing" | "done";
+
+// Simulated ticket reader. Replace with the real ticket OCR/barcode SDK read,
+// which returns the 6-digit number printed on the inserted ticket. The demo
+// pool mixes winning and non-winning numbers so each insert shows a realistic
+// outcome against the demo draw in server/src/prizeStore.js.
+const DEMO_TICKETS = ["123456", "555555", "246810", "888123", "000068", "314159", "271828"];
+function readTicketNumber(): string {
+  return DEMO_TICKETS[Math.floor(Math.random() * DEMO_TICKETS.length)];
+}
 
 export default function Page5Claim() {
   const { t } = useTranslation();
   const nav = useNavigate();
   const { resetSession } = useSession();
 
-  const [phase, setPhase] = useState<Phase>("enter");
-  const [padOpen, setPadOpen] = useState(false);
+  const [phase, setPhase] = useState<Phase>("insert");
   const [ticket, setTicket] = useState<string>("");
   const [prize, setPrize] = useState<Prize | null>(null);
   const [paidAmount, setPaidAmount] = useState(0);
@@ -23,15 +30,17 @@ export default function Page5Claim() {
   // A prize tier id from the server maps to a localized label.
   const tierLabel = (tier: string) => t(`page5.tier.${tier}`, { defaultValue: t("page5.prize") });
 
-  async function lookUp(number: string) {
-    setPadOpen(false);
-    setTicket(number);
+  // The customer inserts the physical ticket; the reader returns its number,
+  // which we look up against the current draw.
+  async function insertTicket() {
     setError(null);
     setPhase("checking");
+    const number = readTicketNumber();
+    setTicket(number);
     const res = await checkPrize(number);
     if (!res.ok) {
       setError(t("page5.error"));
-      setPhase("enter");
+      setPhase("insert");
       return;
     }
     if (!res.prize) {
@@ -53,7 +62,7 @@ export default function Page5Claim() {
     if (!res.ok) {
       // Someone redeemed this exact ticket first, or it no longer wins.
       setError(res.reason === "already-claimed" ? t("page5.already_claimed") : t("page5.error"));
-      setPhase(res.reason === "already-claimed" ? "claimed" : "enter");
+      setPhase(res.reason === "already-claimed" ? "claimed" : "insert");
       return;
     }
     setPaidAmount(res.amount ?? prize?.amount ?? 0);
@@ -64,8 +73,7 @@ export default function Page5Claim() {
     setTicket("");
     setPrize(null);
     setError(null);
-    setPhase("enter");
-    setPadOpen(true);
+    setPhase("insert");
   }
 
   async function onNewSession() {
@@ -80,13 +88,17 @@ export default function Page5Claim() {
 
       {error && <div className="alert" style={{ marginBottom: 16 }}>{error}</div>}
 
-      {phase === "enter" && (
+      {phase === "insert" && (
         <div className="card">
-          <p>{t("page5.scan_prompt")}</p>
+          <div className="row between">
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <Icon icon="mdi:ticket-confirmation-outline" width={20} height={20} /> {t("page5.insert_prompt")}
+            </span>
+          </div>
           <div className="row" style={{ marginTop: 16 }}>
-            <button className="btn" onClick={() => setPadOpen(true)}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <Icon icon="mdi:keyboard-outline" width={18} height={18} /> {t("page5.enter_number")}
+            <button className="btn big full" onClick={insertTicket}>
+              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <Icon icon="mdi:tray-arrow-down" width={18} height={18} /> {t("page5.insert_btn")}
               </span>
             </button>
           </div>
@@ -179,15 +191,6 @@ export default function Page5Claim() {
           <p style={{ marginTop: 8 }}>{t("page5.collect_cash")}</p>
           <button className="btn big full" onClick={onNewSession}>{t("page5.finish")}</button>
         </div>
-      )}
-
-      {padOpen && (
-        <NumberPad
-          title={t("page5.keypad_title")}
-          submitLabel={t("page5.check")}
-          onSubmit={lookUp}
-          onClose={() => setPadOpen(false)}
-        />
       )}
     </div>
   );
