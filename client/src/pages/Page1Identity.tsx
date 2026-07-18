@@ -11,7 +11,7 @@ type Step = "choose" | "card-insert" | "thaid-handshake" | "face" | "done";
 export default function Page1Identity() {
   const { t } = useTranslation();
   const nav = useNavigate();
-  const { identityMethod, setIdentityMethod, setIdentityVerified, consentAccepted, acceptConsent } = useSession();
+  const { identityMethod, setIdentityMethod, setIdentityVerified, setFlowMode, consentAccepted, acceptConsent } = useSession();
   const [step, setStep] = useState<Step>("choose");
 
   function chooseMethod(method: "card" | "thaid") {
@@ -28,8 +28,14 @@ export default function Page1Identity() {
     setStep("done");
   }
 
-  function continueNext() {
+  function startBuy() {
+    setFlowMode("buy");
     nav("/recycle");
+  }
+
+  function startClaim() {
+    setFlowMode("claim");
+    nav("/claim");
   }
 
   return (
@@ -122,12 +128,18 @@ export default function Page1Identity() {
             </span>
             <span className="badge ok">OK</span>
           </div>
-          <div className="row" style={{ marginTop: 16 }}>
-            <button className="btn big full" onClick={continueNext}>
-              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                {t("page1.continue")} <Icon icon="mdi:arrow-right" width={18} height={18} />
-              </span>
-            </button>
+          <p className="page-subtitle" style={{ marginTop: 16 }}>{t("page1.choose_action")}</p>
+          <div className="grid-2">
+            <div className="card method" onClick={startBuy}>
+              <div className="icon"><Icon icon="mdi:cart-outline" width="44" height="44" /></div>
+              <div className="h">{t("page1.action_buy")}</div>
+              <div className="desc">{t("page1.action_buy_desc")}</div>
+            </div>
+            <div className="card method" onClick={startClaim}>
+              <div className="icon"><Icon icon="mdi:cash-multiple" width="44" height="44" /></div>
+              <div className="h">{t("page1.action_claim")}</div>
+              <div className="desc">{t("page1.action_claim_desc")}</div>
+            </div>
           </div>
         </div>
       )}

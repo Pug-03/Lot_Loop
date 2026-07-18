@@ -17,6 +17,9 @@ export type SelectedNumber = {
 };
 
 type IdentityMethod = "card" | "thaid" | null;
+// After verifying identity a customer either buys tickets or redeems a winning
+// one. The chosen mode drives which flow (and which Stepper) they see next.
+export type FlowMode = "buy" | "claim" | null;
 
 type SessionState = {
   kioskId: string;
@@ -34,6 +37,7 @@ type SessionState = {
   acceptConsent: () => void;
   identityMethod: IdentityMethod;
   identityVerified: boolean;
+  flowMode: FlowMode;
   oldTicketUsed: boolean;
   selected: SelectedNumber[];
   pricePerTicket: number;
@@ -41,6 +45,7 @@ type SessionState = {
 
   setIdentityMethod: (m: IdentityMethod) => void;
   setIdentityVerified: (v: boolean) => void;
+  setFlowMode: (m: FlowMode) => void;
   // Mark whether the customer recycled an old ticket (drives the discount only —
   // the old ticket's number is intentionally not tracked or carried forward).
   setOldTicketUsed: (used: boolean) => void;
@@ -70,6 +75,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [identityMethod, setIdentityMethod] = useState<IdentityMethod>(null);
   const [identityVerified, setIdentityVerified] = useState(false);
+  const [flowMode, setFlowMode] = useState<FlowMode>(null);
   const [oldTicketUsed, setOldTicketUsed] = useState(false);
   const [selected, setSelected] = useState<SelectedNumber[]>([]);
 
@@ -181,6 +187,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setConsentAccepted(false);
     setIdentityMethod(null);
     setIdentityVerified(false);
+    setFlowMode(null);
     setOldTicketUsed(false);
   }, [selected]);
 
@@ -195,12 +202,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     acceptConsent,
     identityMethod,
     identityVerified,
+    flowMode,
     oldTicketUsed,
     selected,
     pricePerTicket: PRICE_PER_TICKET,
     discount: oldTicketUsed ? DISCOUNT_AMOUNT : 0,
     setIdentityMethod,
     setIdentityVerified,
+    setFlowMode,
     setOldTicketUsed,
     selectNumber,
     deselectNumber,
@@ -209,7 +218,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     resetSession,
   }), [
     connected, trending, ttlMs, locks, sold, consentAccepted, acceptConsent,
-    identityMethod, identityVerified, oldTicketUsed, selected,
+    identityMethod, identityVerified, flowMode, oldTicketUsed, selected,
     selectNumber, deselectNumber, clearSelection, purchaseSelected, resetSession,
   ]);
 

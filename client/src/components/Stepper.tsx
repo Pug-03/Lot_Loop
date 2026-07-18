@@ -1,17 +1,28 @@
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { Icon } from "@iconify/react";
+import { useSession } from "../state/SessionContext";
 
-const STEPS = [
-  { path: "/identity", key: "stepper.identity", icon: "mdi:shield-account-outline" },
+const IDENTITY_STEP = { path: "/identity", key: "stepper.identity", icon: "mdi:shield-account-outline" };
+
+// The buy flow and the prize-claim flow share the identity step, then diverge.
+const BUY_STEPS = [
+  IDENTITY_STEP,
   { path: "/recycle", key: "stepper.recycle", icon: "mdi:ticket-confirmation-outline" },
   { path: "/select", key: "stepper.select", icon: "mdi:numeric" },
   { path: "/payment", key: "stepper.payment", icon: "mdi:cash-multiple" },
 ] as const;
 
+const CLAIM_STEPS = [
+  IDENTITY_STEP,
+  { path: "/claim", key: "stepper.claim", icon: "mdi:cash-multiple" },
+] as const;
+
 export default function Stepper() {
   const { t } = useTranslation();
   const loc = useLocation();
+  const { flowMode } = useSession();
+  const STEPS = flowMode === "claim" ? CLAIM_STEPS : BUY_STEPS;
   const activeIndex = STEPS.findIndex((s) => loc.pathname.startsWith(s.path));
   if (activeIndex < 0) return null;
 

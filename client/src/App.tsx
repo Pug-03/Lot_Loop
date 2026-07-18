@@ -6,6 +6,7 @@ import Page1Identity from "./pages/Page1Identity";
 import Page2Recycle from "./pages/Page2Recycle";
 import Page3Select from "./pages/Page3Select";
 import Page4Payment from "./pages/Page4Payment";
+import Page5Claim from "./pages/Page5Claim";
 import { useSession } from "./state/SessionContext";
 
 export default function App() {
@@ -19,7 +20,7 @@ export default function App() {
 
   // Later steps require a verified identity. Without this, giving consent and
   // then navigating straight to /select or /payment would skip verification.
-  const AFTER_IDENTITY = ["/recycle", "/select", "/payment"];
+  const AFTER_IDENTITY = ["/recycle", "/select", "/payment", "/claim"];
   const needsIdentity =
     consentAccepted &&
     !identityVerified &&
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="/recycle" element={<Page2Recycle />} />
             <Route path="/select" element={<Page3Select />} />
             <Route path="/payment" element={<Page4Payment />} />
+            <Route path="/claim" element={<Page5Claim />} />
             <Route path="*" element={<Navigate to="/identity" replace />} />
           </Routes>
         )}

@@ -48,6 +48,26 @@ export type LockUpdate =
 
 export type SoldUpdate = { numbers: string[] };
 
+// A prize tier match returned by the server: the tier id, how it matched, and
+// the payout in THB.
+export type Prize = { tier: string; match: string; amount: number };
+
+export type PrizeCheck = {
+  ok: boolean;
+  reason?: string;
+  number?: string;
+  prize?: Prize | null;
+  claimed?: boolean;
+  drawDate?: string | null;
+};
+
+export type PrizeClaim = {
+  ok: boolean;
+  reason?: string;
+  tier?: string;
+  amount?: number;
+};
+
 export function acquireLock(number: string): Promise<{ ok: boolean; reason?: string; entry?: LockEntry }> {
   return new Promise((resolve) => {
     socket.emit("lock:acquire", { number }, resolve);
@@ -63,6 +83,21 @@ export function releaseLock(number: string): Promise<{ ok: boolean; reason?: str
 export function requestRandom(): Promise<{ ok: boolean; number?: string; entry?: LockEntry; reason?: string }> {
   return new Promise((resolve) => {
     socket.emit("lock:random", {}, resolve);
+  });
+}
+
+// Look up a ticket against the current draw (read-only, no payout).
+export function checkPrize(number: string): Promise<PrizeCheck> {
+  return new Promise((resolve) => {
+    socket.emit("prize:check", { number }, resolve);
+  });
+}
+
+// Redeem a winning ticket for cash. Atomic — a losing or already-claimed ticket
+// is rejected so it can never be paid twice.
+export function claimPrize(number: string): Promise<PrizeClaim> {
+  return new Promise((resolve) => {
+    socket.emit("prize:claim", { number }, resolve);
   });
 }
 

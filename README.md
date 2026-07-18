@@ -56,6 +56,22 @@ Customers walk through a 4-step flow in order (see the `Stepper` at the top of t
 3. **เลือกเลข (`/select`)** — เลือกได้ทั้งแบบทีละใบ (single) หรือชุด 5 ใบ (set) จากเลขยอดนิยม (trending) การค้นหาเลข 6 หลักโดยตรง หรือการสุ่ม การกดเลือกเลขจะ **จองชั่วคราว (lock)** เลขนั้นทันที
 4. **ชำระเงิน (`/payment`)** — ราคาใบละ **80 บาท** หักส่วนลดตั๋วเก่า จ่ายผ่านเหรียญ/ธนบัตร หรือ PromptPay เมื่อยืนยันการจ่ายสำเร็จจึงพิมพ์ตั๋วและปิดการขายอย่างถาวร
 
+### Claiming a prize / การขึ้นเงินรางวัล
+
+After identity verification the customer chooses between **buying tickets** or **claiming a prize** (`Page1Identity` → `flowMode`). The claim flow (`/claim`, `Page5Claim.tsx`) lets a winner scan or key in a ticket number; the server matches it against the current draw and pays out:
+
+- Winning numbers and payouts live in `server/src/prizeStore.js` (override with a `WINNING_FILE` JSON draw; a demo draw is used otherwise). Tiers support exact 6-digit matches plus front-3 / last-3 / last-2 matches, and the **highest-paying** tier wins.
+- `prize:check` looks a ticket up (read-only); `prize:claim` redeems it. Redemption is **atomic** — a ticket that wins nothing or has already been claimed is rejected, so it can never be paid out twice.
+- Claimed tickets are persisted to `server/data/claimed.json` (configurable via `CLAIMED_FILE`) so they survive a restart.
+
+<!-- -->
+
+หลังยืนยันตัวตน ลูกค้าจะเลือกระหว่าง **ซื้อสลาก** หรือ **ขึ้นเงินรางวัล** (`Page1Identity` → `flowMode`) ขั้นตอนขึ้นเงิน (`/claim`, `Page5Claim.tsx`) ให้ผู้ถูกรางวัลสแกนหรือกรอกหมายเลขสลาก เซิร์ฟเวอร์จะเทียบกับผลรางวัลงวดปัจจุบันแล้วจ่ายเงิน:
+
+- เลขที่ถูกรางวัลและจำนวนเงินอยู่ใน `server/src/prizeStore.js` (แทนที่ด้วยไฟล์งวด `WINNING_FILE` ได้ หากไม่มีจะใช้ข้อมูลตัวอย่าง) รองรับการทายตรงทั้ง 6 หลัก และเลขหน้า 3 ตัว / เลขท้าย 3 ตัว / เลขท้าย 2 ตัว โดยรางวัลที่ **จ่ายสูงสุด** จะถูกเลือก
+- `prize:check` ใช้ตรวจสลาก (อ่านอย่างเดียว) ส่วน `prize:claim` ใช้ขึ้นเงิน การขึ้นเงินทำงานแบบ **atomic** — สลากที่ไม่ถูกรางวัลหรือถูกขึ้นเงินไปแล้วจะถูกปฏิเสธ จึงไม่มีทางจ่ายซ้ำได้
+- สลากที่ขึ้นเงินแล้วถูกบันทึกลง `server/data/claimed.json` (ตั้งค่าได้ด้วย `CLAIMED_FILE`) จึงอยู่รอดแม้เซิร์ฟเวอร์รีสตาร์ต
+
 ### Distributed locking & real-time sync / การล็อกแบบกระจายและการซิงก์เรียลไทม์
 
 - Every kiosk connects to the server over **Socket.IO**. On connect it receives a `snapshot` (trending numbers, current locks, sold numbers, TTL value) so all machines share the same state.
@@ -107,6 +123,8 @@ Face scan, ID card reader, ThaID handshake, ticket camera, coin acceptor, and Pr
 | Coin/note acceptor / เครื่องรับเหรียญ-ธนบัตร | `Page4Payment.tsx` → `insert()` | Acceptor hardware events (ccTalk/serial) driving the credited amount / อีเวนต์ฮาร์ดแวร์ (ccTalk/serial) ที่ส่งยอดเงินที่รับเข้ามา |
 | PromptPay | `Page4Payment.tsx` → `PromptPayQR` + `completePayment` | Merchant PromptPay payload + bank webhook to confirm the transfer before printing / เพย์โหลด PromptPay ของร้านค้า + webhook ธนาคารยืนยันการโอนก่อนพิมพ์ตั๋ว |
 | Ticket printer / เครื่องพิมพ์ตั๋ว | `Page4Payment.tsx` → `completePayment` | Thermal printer SDK / SDK เครื่องพิมพ์ความร้อน |
+| Prize-ticket scanner / สแกนสลากที่ถูกรางวัล | `Page5Claim.tsx` → `lookUp` | Ticket camera/OCR or barcode read of the winning ticket / กล้อง/OCR หรืออ่านบาร์โค้ดของสลากที่ถูกรางวัล |
+| Cash dispenser / เครื่องจ่ายเงินรางวัล | `Page5Claim.tsx` → `redeem` | Cash dispenser hardware to pay out the prize amount / เครื่องจ่ายเงินสดเพื่อจ่ายเงินรางวัล |
 
 The number selection, distributed locking, pricing, discount, and bilingual flow are fully functional today.
 

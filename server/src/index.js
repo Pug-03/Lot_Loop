@@ -4,6 +4,7 @@ import http from "node:http";
 import { Server as IOServer } from "socket.io";
 import { createLockStore } from "./lockStore.js";
 import { createSoldStore } from "./soldStore.js";
+import { createPrizeStore } from "./prizeStore.js";
 import { getTrending, randomFromRange } from "./trending.js";
 
 const PORT = process.env.PORT || 4000;
@@ -24,6 +25,13 @@ const trending = getTrending();
 const soldStore = createSoldStore(
   process.env.SOLD_FILE ? { file: process.env.SOLD_FILE } : {}
 );
+
+// Winning numbers for the current draw + the set of tickets already redeemed.
+// WINNING_FILE / CLAIMED_FILE let a draw (or a test run) use its own files.
+const prizeStore = createPrizeStore({
+  ...(process.env.WINNING_FILE ? { winningFile: process.env.WINNING_FILE } : {}),
+  ...(process.env.CLAIMED_FILE ? { claimedFile: process.env.CLAIMED_FILE } : {}),
+});
 
 const lockStore = createLockStore({
   ttlMs: TTL_MS,
@@ -55,6 +63,7 @@ app.get("/health", (_req, res) => {
     ttlMs: TTL_MS,
     lockedCount: lockStore.list().length,
     soldCount: soldStore.size(),
+    claimedCount: prizeStore.claimedCount(),
   });
 });
 
@@ -140,6 +149,32 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("sold:update", { numbers: added });
 
     ack?.({ ok: true, sold: added });
+  });
+
+  // Look up a ticket against the current draw. Read-only — reports the prize
+  // (if any) and whether that ticket has already been redeemed. Does NOT pay.
+  socket.on("prize:check", ({ number }, ack) => {
+    if (typeof number !== "string" || !NUMBER_RE.test(number)) {
+      return ack?.({ ok: false, reason: "invalid-number" });
+    }
+    const prize = prizeStore.checkPrize(number);
+    ack?.({
+      ok: true,
+      number,
+      prize, // { tier, match, amount } or null
+      claimed: prizeStore.isClaimed(number),
+      drawDate: prizeStore.drawDate,
+    });
+  });
+
+  // Redeem a winning ticket for cash. Atomic — a ticket that wins nothing or has
+  // already been claimed is rejected, so it can never be paid out twice.
+  socket.on("prize:claim", ({ number }, ack) => {
+    if (typeof number !== "string" || !NUMBER_RE.test(number)) {
+      return ack?.({ ok: false, reason: "invalid-number" });
+    }
+    const result = prizeStore.claim(number);
+    ack?.(result); // { ok, tier, amount } or { ok: false, reason }
   });
 
   socket.on("disconnect", () => {
